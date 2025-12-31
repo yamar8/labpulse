@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { loadUserData, saveUserData } from './firebaseService';
 import Header from './components/Header';
 import Board from './components/Board';
 import ExperimentWizard from './components/ExperimentWizard';
@@ -17,6 +18,8 @@ import {
   TaskStatus,
   TableAiAction
 } from './types';
+import { useAuth } from './contexts/AuthContext';
+import Login from './components/Login';
 import {
   APP_STORAGE_KEY,
   AI_SETTINGS_KEY,
@@ -39,6 +42,7 @@ import { useLanguage } from './contexts/LanguageContext';
 const App: React.FC = () => {
   // --- State ---
   const { t, language } = useLanguage();
+  const { user, loading, isGuest } = useAuth();
   const [data, setData] = useState<AppData>(getLocalStorage(APP_STORAGE_KEY, INITIAL_APP_DATA));
   const [aiSettings, setAiSettings] = useState<AiSettings>(getLocalStorage(AI_SETTINGS_KEY, DEFAULT_AI_SETTINGS));
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -70,9 +74,34 @@ const App: React.FC = () => {
       document.documentElement.lang = 'en';
     }
   }, [language]);
+  // Effect: Handle Data Validation / Migration / Title
+  // (We removed the simple setLocalStorage effect to handle conditional logic below)
+
   useEffect(() => {
-    setLocalStorage(APP_STORAGE_KEY, data);
-  }, [data]);
+    // If Guest or Not Logged In -> Save to Local Storage
+    if (!user) {
+      setLocalStorage(APP_STORAGE_KEY, data);
+    } else {
+      // If Logged In -> Save to Firestore
+      // Debouncing could be good here, but for now direct save
+      saveUserData(user.uid, data).catch(console.error);
+    }
+  }, [data, user]);
+
+  useEffect(() => {
+    // Load Data on Login
+    if (user) {
+      loadUserData(user.uid).then((cloudData) => {
+        if (cloudData) {
+          // Found data in cloud -> Use it
+          setData(validateAndMigrateAppData(cloudData));
+        } else {
+          // No data in cloud (New User) -> Upload current local data (Bootstrap account)
+          saveUserData(user.uid, data);
+        }
+      });
+    }
+  }, [user]);
 
   useEffect(() => {
     // Privacy: Only save API Key to Local Storage if rememberApiKey is true
@@ -411,6 +440,18 @@ const App: React.FC = () => {
     link.setAttribute('download', 'labpulse_tasks.csv');
     link.click();
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (!user && !isGuest) {
+    return <Login />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors">

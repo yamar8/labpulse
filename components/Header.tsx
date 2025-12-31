@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import {
   PlusIcon,
   CalendarIcon,
@@ -10,7 +11,8 @@ import {
   TableCellsIcon,
   ArchiveBoxIcon,
   CalendarDaysIcon,
-  LanguageIcon
+  LanguageIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
 
 interface HeaderProps {
@@ -40,6 +42,7 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const { t, language, toggleLanguage } = useLanguage();
+  const { signOut, user, isGuest } = useAuth();
 
   return (
     <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40 shadow-sm transition-colors">
@@ -111,23 +114,34 @@ const Header: React.FC<HeaderProps> = ({
           <button onClick={onSettings} className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors" title={t.header.settings}>
             <Cog6ToothIcon className="w-6 h-6" />
           </button>
+
+          {(user || isGuest) && (
+            <>
+              <div className="h-6 w-px bg-slate-200 dark:bg-slate-600 mx-2"></div>
+              <button
+                onClick={signOut}
+                className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/40 rounded-lg transition-colors"
+                title="Log Out"
+              >
+                <ArrowRightOnRectangleIcon className="w-6 h-6" />
+              </button>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden flex items-center gap-1.5">
+        <div className="md:hidden flex items-center gap-2">
           <button onClick={toggleLanguage} className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">
             <span className="text-lg">{language === 'he' ? '🇺🇸' : '🇮🇱'}</span>
           </button>
 
           <button
             onClick={onNewExperiment}
-            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white p-2 sm:px-3 sm:py-1.5 rounded-lg text-sm font-medium shadow-sm"
-            title={t.header.newExperiment}
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-sm"
           >
-            <PlusIcon className="w-5 h-5" />
-            <span className="hidden sm:inline">{t.common.new}</span>
+            <PlusIcon className="w-4 h-4" />
+            <span>{t.common.new}</span>
           </button>
-
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
@@ -164,6 +178,15 @@ const Header: React.FC<HeaderProps> = ({
             <button onClick={onExport} className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm"><ArrowDownTrayIcon className="w-4 h-4" /> {t.common.export}</button>
             <button onClick={onSettings} className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm"><Cog6ToothIcon className="w-4 h-4" /> {t.common.settings}</button>
           </div>
+
+          {(user || isGuest) && (
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-3 flex justify-center">
+              <button onClick={signOut} className="flex items-center gap-2 text-red-600 text-sm font-medium">
+                <ArrowRightOnRectangleIcon className="w-4 h-4" />
+                התנתק {isGuest ? '(אורח)' : ''}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </header>

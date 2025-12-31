@@ -243,8 +243,8 @@ const Board: React.FC<BoardProps> = ({
                   <td colSpan={weeks.length + 1} className="py-20 text-center">
                     <div className="flex flex-col items-center">
                       <ChartBarIcon className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-4" />
-                      <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-200">אין ניסויים פעילים</h3>
-                      <p className="text-slate-500 dark:text-slate-400">לחץ על "ניסוי חדש" כדי להתחיל</p>
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-200">{t.board.noActiveExperiments}</h3>
+                      <p className="text-slate-500 dark:text-slate-400">{t.board.clickNewToStart}</p>
                     </div>
                   </td>
                 </tr>

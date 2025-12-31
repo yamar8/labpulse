@@ -114,18 +114,20 @@ const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden flex items-center gap-2">
+        <div className="md:hidden flex items-center gap-1.5">
           <button onClick={toggleLanguage} className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">
             <span className="text-lg">{language === 'he' ? '🇺🇸' : '🇮🇱'}</span>
           </button>
 
           <button
             onClick={onNewExperiment}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-sm"
+            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white p-2 sm:px-3 sm:py-1.5 rounded-lg text-sm font-medium shadow-sm"
+            title={t.header.newExperiment}
           >
-            <PlusIcon className="w-4 h-4" />
-            <span>{t.common.new}</span>
+            <PlusIcon className="w-5 h-5" />
+            <span className="hidden sm:inline">{t.common.new}</span>
           </button>
+
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"

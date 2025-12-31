@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { ArrowPathIcon, ArrowUturnRightIcon, XMarkIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/outline';
 import { getTableAction } from '../geminiService';
 import { AiSettings, TableAiAction, Experiment, Task } from '../types';
@@ -19,14 +20,15 @@ interface TableAiAssistantProps {
   canUndo?: boolean;
 }
 
-const TableAiAssistant: React.FC<TableAiAssistantProps> = ({ 
-  settings, 
-  experiments, 
+const TableAiAssistant: React.FC<TableAiAssistantProps> = ({
+  settings,
+  experiments,
   tasks,
   onActionConfirmed,
   onUndo,
-  canUndo 
+  canUndo
 }) => {
+  const { t } = useLanguage();
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [pendingAction, setPendingAction] = useState<TableAiAction | null>(null);
@@ -38,7 +40,7 @@ const TableAiAssistant: React.FC<TableAiAssistantProps> = ({
     setLoading(true);
     try {
       // Send all tasks for context so queries are accurate
-      const res = await getTableAction(settings, prompt, experiments, tasks); 
+      const res = await getTableAction(settings, prompt, experiments, tasks);
       if (res.action === 'none') {
         alert(res.textResponse);
         setPrompt('');
@@ -46,7 +48,7 @@ const TableAiAssistant: React.FC<TableAiAssistantProps> = ({
         setPendingAction(res);
       }
     } catch (error) {
-      alert("שגיאה בגישה ל-AI. וודא שמפתח ה-API תקין.");
+      alert(t.aiChat.error);
     } finally {
       setLoading(false);
     }
@@ -59,13 +61,13 @@ const TableAiAssistant: React.FC<TableAiAssistantProps> = ({
       {/* Undo Toast Notification */}
       {canUndo && !pendingAction && (
         <div className="bg-slate-900 text-white px-4 py-2 rounded-xl shadow-lg flex items-center gap-4 animate-in fade-in slide-in-from-bottom-2 mb-2">
-          <span className="text-sm font-medium">הפעולה בוצעה בהצלחה</span>
-          <button 
+          <span className="text-sm font-medium">{t.aiChat.undo}</span>
+          <button
             onClick={onUndo}
             className="flex items-center gap-1 text-indigo-300 hover:text-white transition-colors text-sm font-bold"
           >
             <ArrowUturnRightIcon className="w-4 h-4" />
-            <span>ביטול פעולה</span>
+            <span>{t.aiChat.undoAction}</span>
           </button>
         </div>
       )}
@@ -75,30 +77,30 @@ const TableAiAssistant: React.FC<TableAiAssistantProps> = ({
           <div className="flex items-center justify-between">
             <div className={`flex items-center gap-2 ${isQuery ? 'text-emerald-700' : 'text-indigo-700'}`}>
               {isQuery ? <ChatBubbleBottomCenterTextIcon className="w-6 h-6" /> : <SparklesIcon className="w-6 h-6" />}
-              <h4 className="font-bold">{isQuery ? 'תשובת המערכת' : 'הצעה לפעולת AI'}</h4>
+              <h4 className="font-bold">{isQuery ? t.aiChat.systemAnswer : t.aiChat.aiActionProposal}</h4>
             </div>
             <button onClick={() => setPendingAction(null)} className="text-slate-400 hover:text-slate-600">
-               <XMarkIcon className="w-5 h-5" />
+              <XMarkIcon className="w-5 h-5" />
             </button>
           </div>
-          
+
           <div className="max-h-60 overflow-y-auto custom-scrollbar">
-             <p className="text-sm text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">{pendingAction.textResponse}</p>
+            <p className="text-sm text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">{pendingAction.textResponse}</p>
           </div>
-          
+
           {/* Visual confirmation details (Only for actions, not queries) */}
           {!isQuery && (
             <div className="bg-slate-50 p-3 rounded-lg text-xs text-slate-500 space-y-1">
-               <p><span className="font-bold">פעולה:</span> {pendingAction.action}</p>
-               {pendingAction.payload.taskData?.title && <p><span className="font-bold">משימה:</span> {pendingAction.payload.taskData.title}</p>}
-               {pendingAction.payload.experimentData?.name && <p><span className="font-bold">ניסוי:</span> {pendingAction.payload.experimentData.name}</p>}
+              <p><span className="font-bold">{t.aiChat.action}:</span> {pendingAction.action}</p>
+              {pendingAction.payload.taskData?.title && <p><span className="font-bold">{t.aiChat.task}:</span> {pendingAction.payload.taskData.title}</p>}
+              {pendingAction.payload.experimentData?.name && <p><span className="font-bold">{t.aiChat.experiment}:</span> {pendingAction.payload.experimentData.name}</p>}
             </div>
           )}
 
           <div className="flex items-center gap-3 pt-2">
             {!isQuery ? (
               <>
-                <button 
+                <button
                   onClick={() => {
                     onActionConfirmed(pendingAction);
                     setPendingAction(null);
@@ -106,24 +108,24 @@ const TableAiAssistant: React.FC<TableAiAssistantProps> = ({
                   }}
                   className="flex-1 bg-indigo-600 text-white font-bold py-2 rounded-xl hover:bg-indigo-700 shadow-md transition-colors"
                 >
-                  אשר וביצוע
+                  {t.aiChat.confirm}
                 </button>
-                <button 
+                <button
                   onClick={() => setPendingAction(null)}
                   className="flex-1 border border-slate-300 text-slate-700 font-bold py-2 rounded-xl hover:bg-slate-50 transition-colors"
                 >
-                  ביטול
+                  {t.aiChat.cancel}
                 </button>
               </>
             ) : (
-              <button 
+              <button
                 onClick={() => {
                   setPendingAction(null);
                   setPrompt('');
                 }}
                 className="flex-1 bg-emerald-600 text-white font-bold py-2 rounded-xl hover:bg-emerald-700 shadow-md transition-colors"
               >
-                סגור תשובה
+                {t.aiChat.closeAnswer}
               </button>
             )}
           </div>
@@ -133,20 +135,20 @@ const TableAiAssistant: React.FC<TableAiAssistantProps> = ({
           <div className="bg-indigo-600 p-2 rounded-xl shadow-inner">
             <SparklesIcon className="w-5 h-5 text-white" />
           </div>
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             disabled={loading}
             className="flex-1 bg-transparent border-none outline-none text-sm py-2 px-1 text-slate-800 placeholder:text-slate-400 text-right"
-            placeholder="שאל שאלה על הנתונים או בקש להוסיף משימה..."
+            placeholder={t.aiChat.inputPlaceholder}
           />
-          <button 
+          <button
             type="submit"
             disabled={loading || !prompt.trim()}
             className="bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 disabled:opacity-50"
           >
-            {loading ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : "שלח"}
+            {loading ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : t.aiChat.send}
           </button>
         </form>
       )}

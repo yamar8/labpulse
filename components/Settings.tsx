@@ -24,7 +24,7 @@ const Settings: React.FC<SettingsProps> = ({ settings, onSave, onClose }) => {
           </button>
         </div>
 
-        <div className="p-6 space-y-8 flex-1 overflow-y-auto text-slate-900 dark:text-slate-100 custom-scrollbar">
+        <div className="p-4 md:p-6 space-y-8 flex-1 overflow-y-auto text-slate-900 dark:text-slate-100 custom-scrollbar">
 
           {/* Appearance Settings */}
           <div className="space-y-4">
@@ -32,7 +32,7 @@ const Settings: React.FC<SettingsProps> = ({ settings, onSave, onClose }) => {
               <PaintBrushIcon className="w-5 h-5 text-indigo-500" />
               {t.settings.appearance}
             </h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">{t.settings.theme}</label>
                 <div className="flex bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
@@ -72,7 +72,7 @@ const Settings: React.FC<SettingsProps> = ({ settings, onSave, onClose }) => {
               {t.settings.aiPersona}
             </h3>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">{t.settings.style}</label>
                 <select
@@ -192,7 +192,7 @@ const Settings: React.FC<SettingsProps> = ({ settings, onSave, onClose }) => {
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">{t.settings.model}</label>
                 <select

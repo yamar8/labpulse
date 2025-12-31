@@ -318,8 +318,8 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
 
         <div className="flex-1 overflow-y-auto">
           {activeTab === 'details' ? (
-            <div className="p-8 space-y-8">
-              <div className="grid grid-cols-2 gap-8">
+            <div className="p-4 md:p-8 space-y-6 md:space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">{t.wizard.experimentName}</label>
@@ -499,9 +499,9 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
               </div>
             </div>
           ) : (
-            <div className="p-8 space-y-8">
+            <div className="p-4 md:p-8 space-y-8">
               {/* Timeline Shift Tool */}
-              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/50 rounded-2xl p-6 flex items-center justify-between">
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/50 rounded-2xl p-4 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
                   <div className="bg-amber-200 dark:bg-amber-800 p-2 rounded-lg text-amber-800 dark:text-amber-100">
                     <ArrowsRightLeftIcon className="w-6 h-6" />
@@ -734,15 +734,15 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
           </div>
         )}
 
-        <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="px-4 md:px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex flex-col-reverse md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center justify-between w-full md:w-auto gap-4">
             <button
               onClick={() => onArchive(experiment.id)}
               className="text-slate-500 hover:text-red-600 font-bold text-sm transition-colors"
             >
               {edited.status === 'active' ? t.experimentDetails.archiveExperiment : t.experimentDetails.restoreExperiment}
             </button>
-            <div className="h-4 w-px bg-slate-300 dark:bg-slate-600"></div>
+            <div className="h-4 w-px bg-slate-300 dark:bg-slate-600 hidden md:block"></div>
             <button
               onClick={handleGenerateReport}
               disabled={generatingReport}
@@ -753,8 +753,8 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button onClick={onClose} className="px-6 py-2 rounded-xl border border-slate-300 dark:border-slate-600 font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <button onClick={onClose} className="flex-1 md:flex-none px-6 py-2 rounded-xl border border-slate-300 dark:border-slate-600 font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
               {t.common.cancel}
             </button>
             <button
@@ -762,7 +762,7 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
                 if (isEditingPlan) savePlanChanges(); // Save plan if editing
                 onSave(edited); // Save general details
               }}
-              className="px-6 py-2 rounded-xl bg-indigo-600 font-bold text-white hover:bg-indigo-700 shadow-sm"
+              className="flex-1 md:flex-none px-6 py-2 rounded-xl bg-indigo-600 font-bold text-white hover:bg-indigo-700 shadow-sm"
             >
               {t.common.save}
             </button>

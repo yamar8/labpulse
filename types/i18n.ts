@@ -59,6 +59,8 @@ export interface TranslationDictionary {
         skipAi: string;
         finish: string;
         addManualTask: string;
+        back: string;
+        continue: string;
     };
     taskModal: {
         title: string; // Edit Task or New Task
@@ -83,7 +85,23 @@ export interface TranslationDictionary {
         noDependenciesAvailable: string;
         completed: string;
         confirmDeleteYes: string;
+
         confirmDeleteNo: string;
+    };
+    aiChat: {
+        systemAnswer: string;
+        aiActionProposal: string;
+        action: string;
+        task: string;
+        experiment: string;
+        confirm: string;
+        cancel: string;
+        closeAnswer: string;
+        inputPlaceholder: string;
+        send: string;
+        undo: string;
+        undoAction: string;
+        error: string;
     };
     experimentDetails: {
         title: string; // Experiment Details

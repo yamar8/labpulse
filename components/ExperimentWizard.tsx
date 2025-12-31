@@ -344,7 +344,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                   className="w-full border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none h-24 resize-none"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1">{t.wizard.startDate}</label>
                   <input
@@ -429,82 +429,87 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
               </div>
 
               <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-3 py-3 w-10 text-center">
-                        <input type="checkbox" className="rounded border-slate-300" checked={draftTasks.every(t => t.isSelected)} onChange={e => {
-                          const val = e.target.checked;
-                          setDraftTasks(prev => prev.map(t => ({ ...t, isSelected: val })));
-                        }} />
-                      </th>
-                      <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase w-20">{t.taskModal.weekOffset}</th>
-                      <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase">{t.taskModal.name}</th>
-                      <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase w-48">Recurrence</th>
-                      <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase w-24">{t.taskModal.importance}</th>
-                      <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase w-24">{t.common.edit}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
-                    {draftTasks.map((task) => (
-                      <tr key={task.id} className={`hover:bg-slate-50 transition-colors ${!task.isSelected ? 'opacity-50 grayscale' : ''}`}>
-                        <td className="px-3 py-3 text-center">
-                          <input
-                            type="checkbox"
-                            checked={task.isSelected}
-                            onChange={(e) => handleUpdateDraftTask(task.id, { isSelected: e.target.checked })}
-                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                          />
-                        </td>
-                        <td className="px-3 py-3">
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-slate-400">שבוע</span>
-                            <span className="font-bold text-sm bg-slate-100 px-2 py-0.5 rounded">{task.weekOffset}</span>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3">
-                          <span className="block text-sm font-bold text-slate-800">{task.title}</span>
-                          <span className="block text-xs text-slate-500 truncate max-w-[200px]">{task.description}</span>
-                        </td>
-                        <td className="px-3 py-3">
-                          {task.recurrence ? (
-                            <div className="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-lg border border-purple-100 inline-flex flex-col">
-                              <span className="font-bold">כל {task.recurrence.intervalWeeks} שבועות</span>
-                              <span className="text-[10px] opacity-80">למשך {task.recurrence.durationWeeks} שבועות</span>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-slate-200">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="px-3 py-3 w-10 text-center">
+                          <input type="checkbox" className="rounded border-slate-300" checked={draftTasks.every(t => t.isSelected)} onChange={e => {
+                            const val = e.target.checked;
+                            setDraftTasks(prev => prev.map(t => ({ ...t, isSelected: val })));
+                          }} />
+                        </th>
+                        <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase w-20">{t.taskModal.weekOffset}</th>
+                        <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase min-w-[120px]">{t.taskModal.name}</th>
+                        <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase w-48 hidden sm:table-cell">Recurrence</th>
+                        <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase w-24 hidden sm:table-cell">{t.taskModal.importance}</th>
+                        <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase w-24">{t.common.edit}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-slate-200">
+                      {draftTasks.map((task) => (
+                        <tr key={task.id} className={`hover:bg-slate-50 transition-colors ${!task.isSelected ? 'opacity-50 grayscale' : ''}`}>
+                          <td className="px-3 py-3 text-center">
+                            <input
+                              type="checkbox"
+                              checked={task.isSelected}
+                              onChange={(e) => handleUpdateDraftTask(task.id, { isSelected: e.target.checked })}
+                              className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </td>
+                          <td className="px-3 py-3">
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-slate-400">שבוע</span>
+                              <span className="font-bold text-sm bg-slate-100 px-2 py-0.5 rounded">{task.weekOffset}</span>
                             </div>
-                          ) : (
-                            <span className="text-xs text-slate-400">- חד פעמי -</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-3">
-                          <div className={`text-xs font-bold px-2 py-1 rounded text-center
+                          </td>
+                          <td className="px-3 py-3">
+                            <span className="block text-sm font-bold text-slate-800">{task.title}</span>
+                            <span className="block text-xs text-slate-500 truncate max-w-[200px]">{task.description}</span>
+                            <div className="sm:hidden mt-1 flex gap-2">
+                              {task.importance >= 4 && <span className="text-[10px] bg-red-100 text-red-700 px-1 rounded">P{task.importance}</span>}
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 hidden sm:table-cell">
+                            {task.recurrence ? (
+                              <div className="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-lg border border-purple-100 inline-flex flex-col">
+                                <span className="font-bold">כל {task.recurrence.intervalWeeks} שבועות</span>
+                                <span className="text-[10px] opacity-80">למשך {task.recurrence.durationWeeks} שבועות</span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-slate-400">- חד פעמי -</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-3 hidden sm:table-cell">
+                            <div className={`text-xs font-bold px-2 py-1 rounded text-center
                              ${task.importance >= 4 ? 'bg-red-100 text-red-700' : task.importance >= 2 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}
                            `}>
-                            P{task.importance}
-                          </div>
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => setEditingTask(task)}
-                              className="text-slate-400 hover:text-indigo-600 p-1 bg-slate-100 rounded-lg transition-colors"
-                              title="עריכה מלאה"
-                            >
-                              <PencilSquareIcon className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => setDraftTasks(prev => prev.filter(t => t.id !== task.id))}
-                              className="text-slate-400 hover:text-red-500 p-1"
-                              title="מחק"
-                            >
-                              <TrashIcon className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                              P{task.importance}
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => setEditingTask(task)}
+                                className="text-slate-400 hover:text-indigo-600 p-1 bg-slate-100 rounded-lg transition-colors"
+                                title="עריכה מלאה"
+                              >
+                                <PencilSquareIcon className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setDraftTasks(prev => prev.filter(t => t.id !== task.id))}
+                                className="text-slate-400 hover:text-red-500 p-1"
+                                title="מחק"
+                              >
+                                <TrashIcon className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
                 <button
                   onClick={handleAddManualTask}
                   className="w-full py-3 text-center text-sm font-bold text-indigo-600 hover:bg-indigo-50 border-t border-slate-200 flex items-center justify-center gap-2"
@@ -519,8 +524,8 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
           {/* Edit Modal Overlay (Inside Wizard) */}
           {editingTask && (
             <div className="absolute inset-0 bg-white/95 backdrop-blur-sm z-10 flex flex-col animate-in fade-in duration-200">
-              <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
-                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <div className="px-4 md:px-8 py-4 md:py-6 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2">
                   <PencilSquareIcon className="w-6 h-6 text-indigo-600" />
                   עריכת משימה
                 </h3>
@@ -528,7 +533,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                   <XMarkIcon className="w-6 h-6" />
                 </button>
               </div>
-              <div className="p-8 space-y-6 flex-1 overflow-y-auto max-w-3xl mx-auto w-full">
+              <div className="p-4 md:p-8 space-y-6 flex-1 overflow-y-auto max-w-3xl mx-auto w-full">
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1">כותרת המשימה</label>
                   <input
@@ -539,7 +544,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <label className="block text-sm font-bold text-slate-700">תזמון (התחלה)</label>
@@ -624,7 +629,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                   </div>
 
                   {editingTask.recurrence && (
-                    <div className="grid grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 pt-2 border-t border-purple-200">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 pt-2 border-t border-purple-200">
                       <div>
                         <label className="block text-xs font-bold text-purple-700 mb-1">תדירות (כל כמה שבועות?)</label>
                         <div className="relative">
@@ -672,7 +677,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                   />
                 </div>
               </div>
-              <div className="px-8 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+              <div className="px-4 md:px-8 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 flex-wrap">
                 <button
                   onClick={() => setEditingTask(null)}
                   className="px-6 py-2 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100"
@@ -692,42 +697,42 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
         </div>
 
         {/* Footer Navigation */}
-        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+        <div className="px-4 md:px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
             {[1, 2, 3].map(s => (
               <div key={s} className={`w-3 h-3 rounded-full ${step === s ? 'bg-indigo-600' : 'bg-slate-300'}`}></div>
             ))}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {step > 1 && !editingTask && (
               <button
                 onClick={() => setStep(step - 1)}
-                className="px-6 py-2 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100"
+                className="px-4 md:px-6 py-2 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100 text-sm md:text-base"
               >
-                הקודם
+                {t.wizard.back}
               </button>
             )}
             {step === 1 && (
               <button
                 onClick={() => setStep(2)}
                 disabled={!basicData.name}
-                className="px-6 py-2 rounded-xl bg-indigo-600 font-bold text-white hover:bg-indigo-700 disabled:opacity-50"
+                className="px-4 md:px-6 py-2 rounded-xl bg-indigo-600 font-bold text-white hover:bg-indigo-700 disabled:opacity-50 text-sm md:text-base"
               >
-                המשך
+                {t.wizard.continue}
               </button>
             )}
             {step === 2 && (
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-col sm:flex-row">
                 <button
                   onClick={() => handleFinish()}
-                  className="px-6 py-2 rounded-xl border border-indigo-600 text-indigo-600 font-bold hover:bg-indigo-50"
+                  className="px-6 py-2 rounded-xl border border-indigo-600 text-indigo-600 font-bold hover:bg-indigo-50 text-sm md:text-base"
                 >
                   דילוג על AI
                 </button>
                 <button
                   onClick={handleGeneratePlan}
                   disabled={loading || !proposalText}
-                  className="px-6 py-2 rounded-xl bg-indigo-600 font-bold text-white hover:bg-indigo-700 flex items-center gap-2"
+                  className="px-6 py-2 rounded-xl bg-indigo-600 font-bold text-white hover:bg-indigo-700 flex items-center gap-2 justify-center text-sm md:text-base"
                 >
                   {loading ? <ArrowPathIcon className="w-5 h-5 animate-spin" /> : <DocumentTextIcon className="w-5 h-5" />}
                   <span>צור תוכנית AI</span>
@@ -737,7 +742,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
             {step === 3 && !editingTask && (
               <button
                 onClick={handleFinish}
-                className="px-6 py-2 rounded-xl bg-indigo-600 font-bold text-white hover:bg-indigo-700 flex items-center gap-2"
+                className="px-6 py-2 rounded-xl bg-indigo-600 font-bold text-white hover:bg-indigo-700 flex items-center gap-2 text-sm md:text-base"
               >
                 <CheckIcon className="w-5 h-5" />
                 <span>סיים והוסף ללוח</span>

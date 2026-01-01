@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow users to read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow users to check if they are whitelisted (read-only)
+    match /whitelisted_users/{email} {
+      // Allow read if the user is authenticated and looking up their own email
+      allow read: if request.auth != null && request.auth.token.email.lower() == email.lower();
+    }
+  }
+}

@@ -45,3 +45,20 @@ export const subscribeToUserData = (userId: string, callback: (data: AppData) =>
         }
     });
 };
+
+export const checkIfWhitelisted = async (email: string): Promise<boolean> => {
+    if (!email) return false;
+    try {
+        const whitelistRef = doc(db, 'whitelisted_users', email.toLowerCase());
+        const docSnap = await getDoc(whitelistRef);
+        // Check if document exists and optionally if 'enabled' is true (default logic: existence is enough or check enabled)
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            return data.enabled === true;
+        }
+        return false;
+    } catch (error) {
+        console.error("Error checking whitelist for:", email, error);
+        return false;
+    }
+};

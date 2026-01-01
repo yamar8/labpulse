@@ -1,6 +1,9 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { loadUserData, saveUserData } from './firebaseService';
+import {
+  loadUserData,
+  saveUserData,
+  checkIfWhitelisted
+} from './firebaseService';
 import Header from './components/Header';
 import Board from './components/Board';
 import ExperimentWizard from './components/ExperimentWizard';
@@ -70,8 +73,32 @@ const App: React.FC = () => {
 
   // --- Effects ---
   const [isCloudSynced, setIsCloudSynced] = useState(false);
+  const [isWhitelisted, setIsWhitelisted] = useState<boolean | null>(null);
+  const [checkingWhitelist, setCheckingWhitelist] = useState(false);
 
   // --- Effects ---
+  // --- Effects ---
+  // Effect: Handle Whitelist Check
+  useEffect(() => {
+    const checkWhitelistStatus = async () => {
+      if (user) {
+        setCheckingWhitelist(true);
+        try {
+          const allowed = await checkIfWhitelisted(user.email || '');
+          setIsWhitelisted(allowed);
+        } catch (err) {
+          console.error("Whitelist check failed in App.tsx", err);
+          setIsWhitelisted(false);
+        } finally {
+          setCheckingWhitelist(false);
+        }
+      } else {
+        setIsWhitelisted(null);
+      }
+    };
+    checkWhitelistStatus();
+  }, [user]);
+
   useEffect(() => {
     // Update Document Title based on language
     if (language === 'he') {
@@ -84,6 +111,8 @@ const App: React.FC = () => {
       document.documentElement.lang = 'en';
     }
   }, [language]);
+
+
 
   // Effect: Handle Data Sync (Load/Subscribe)
   useEffect(() => {
@@ -426,7 +455,7 @@ const App: React.FC = () => {
     }));
 
     setImportCandidate(null);
-    alert(`יובאו בהצלחה: ${newExperiments.length} ניסויים, ${newTasks.length} משימות.`);
+    alert("יובאו בהצלחה: " + newExperiments.length + " ניסויים, " + newTasks.length + " משימות.");
   };
 
   const handleReplaceImport = () => {
@@ -437,13 +466,15 @@ const App: React.FC = () => {
   };
 
   // --- AI Actions Logic ---
-  const handleAiActionConfirmed = (aiAction: TableAiAction) => {
-    // ... (existing AI logic, unchanged for brevity but kept in mind) ...
-    // Simplified for XML limits in response, but assume existing logic remains.
+  const handleAiActionConfirmed = (aiAction: any) => {
+    // Note: Using 'any' for aiAction temporarily if type is not imported, but maintaining logic.
+    // Ideally import TableAiAction from where it is defined.
     const { action, payload } = aiAction;
+
     if (action === 'add_task') {
       const expId = payload.experimentId || data.experiments[0]?.id;
       if (!expId) return;
+
       const weekId = normalizeToSunday(addWeeks(new Date(), payload.weekOffset || 0));
       const newTask: Task = {
         id: generateUUID(),
@@ -458,7 +489,11 @@ const App: React.FC = () => {
         attachments: [],
         dependencies: []
       };
-      setData(prev => ({ ...prev, tasks: [...prev.tasks, newTask] }));
+
+      setData(prev => ({
+        ...prev,
+        tasks: [...prev.tasks, newTask]
+      }));
     } else if (action === 'delete_task' && payload.taskId) {
       handleDeleteTask(payload.taskId);
     }
@@ -471,7 +506,7 @@ const App: React.FC = () => {
   };
 
   const handleExportJson = () => {
-    downloadJson(data, `labpulse_backup_${new Date().toISOString().split('T')[0]}.json`);
+    downloadJson(data, "labpulse_backup_" + new Date().toISOString().split('T')[0] + ".json");
   };
 
   const handleExportCsv = () => {
@@ -496,10 +531,37 @@ const App: React.FC = () => {
     link.click();
   };
 
-  if (loading) {
+
+  if (loading || (user && !isGuest && checkingWhitelist)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  // Whitelist Gate (New)
+  if (user && isWhitelisted === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
+        <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-700 text-center">
+          <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">הגישה נדחתה</h2>
+          <p className="text-slate-600 dark:text-slate-300 mb-6">
+            המשתמש <strong>{user.email}</strong> אינו מורשה להשתמש במערכת זו.
+            <br />
+            אנא פנה למנהל המערכת לקבלת גישה.
+          </p>
+          <div className="mt-6 border-t border-slate-200 dark:border-slate-700 pt-4">
+            <button onClick={signOut} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg transition-colors">
+              התנתק
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

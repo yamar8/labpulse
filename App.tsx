@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { loadUserData, saveUserData } from './firebaseService';
 import Header from './components/Header';
 import Board from './components/Board';
@@ -44,6 +44,12 @@ const App: React.FC = () => {
   const { t, language } = useLanguage();
   const { user, loading, isGuest } = useAuth();
   const [data, setData] = useState<AppData>(getLocalStorage(APP_STORAGE_KEY, INITIAL_APP_DATA));
+  const dataRef = useRef(data);
+
+  // Keep ref in sync with latest state for use in effects with stale closures
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
   const [aiSettings, setAiSettings] = useState<AiSettings>(getLocalStorage(AI_SETTINGS_KEY, DEFAULT_AI_SETTINGS));
   const [wizardOpen, setWizardOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -95,7 +101,7 @@ const App: React.FC = () => {
             setIsCloudSynced(true);
           } else {
             // Case B: New User -> Bootstrap with current local data
-            await saveUserData(user.uid, data);
+            await saveUserData(user.uid, dataRef.current);
             setIsCloudSynced(true);
           }
 

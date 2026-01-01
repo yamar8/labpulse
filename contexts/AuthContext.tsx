@@ -9,6 +9,7 @@ import {
     signInWithPopup
 } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
+import { APP_STORAGE_KEY } from '../constants';
 
 interface AuthContextType {
     user: User | null;
@@ -64,10 +65,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const signOut = async () => {
         await firebaseSignOut(auth);
+        // Clear local app data to prevent next user/guest from seeing previous data
+        localStorage.removeItem(APP_STORAGE_KEY);
         setIsGuest(false);
     };
 
     const continueAsGuest = () => {
+        // Clear any authenticated user data from local storage so guest starts fresh
+        localStorage.removeItem(APP_STORAGE_KEY);
         setIsGuest(true);
     };
 

@@ -127,8 +127,10 @@ const App: React.FC = () => {
           setIsCloudSynced(true);
         }
       } else {
-        // Guest Mode
+        // Guest Mode or Logged Out
         setIsCloudSynced(false);
+        // Clear state to prevent seeing previous user's data
+        setData(getLocalStorage(APP_STORAGE_KEY, INITIAL_APP_DATA));
       }
     };
 

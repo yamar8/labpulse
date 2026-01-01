@@ -13,7 +13,8 @@ import {
   CalendarDaysIcon,
   LanguageIcon,
   ArrowRightOnRectangleIcon,
-  Bars3Icon
+  Bars3Icon,
+  UserCircleIcon
 } from '@heroicons/react/24/outline';
 
 interface HeaderProps {
@@ -119,13 +120,40 @@ const Header: React.FC<HeaderProps> = ({
           {(user || isGuest) && (
             <>
               <div className="h-6 w-px bg-slate-200 dark:bg-slate-600 mx-2"></div>
-              <button
-                onClick={signOut}
-                className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/40 rounded-lg transition-colors"
-                title="Log Out"
-              >
-                <ArrowRightOnRectangleIcon className="w-6 h-6" />
-              </button>
+
+              <div className="relative group">
+                <button
+                  className="flex items-center gap-2 p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-600"
+                  title="Profile"
+                >
+                  <UserCircleIcon className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+                  <div className="hidden lg:block text-left">
+                    <p className="text-xs font-bold leading-none">{user?.displayName || (isGuest ? 'Guest User' : 'User')}</p>
+                    <p className="text-[10px] text-slate-500">{user?.email || (isGuest ? 'Local Mode' : '')}</p>
+                  </div>
+                </button>
+
+                {/* Dropdown Menu */}
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all z-50">
+                  <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 mb-2">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">{user?.displayName || 'Guest User'}</p>
+                    <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+                    {user?.metadata.lastSignInTime && (
+                      <p className="text-[10px] text-slate-400 mt-2">
+                        Last login: {new Date(user.metadata.lastSignInTime).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={signOut}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                  >
+                    <ArrowRightOnRectangleIcon className="w-4 h-4" />
+                    <span>Log Out</span>
+                  </button>
+                </div>
+              </div>
             </>
           )}
         </div>
@@ -181,8 +209,22 @@ const Header: React.FC<HeaderProps> = ({
           </div>
 
           {(user || isGuest) && (
-            <div className="border-t border-slate-200 dark:border-slate-700 pt-3 flex justify-center">
-              <button onClick={signOut} className="flex items-center gap-2 text-red-600 text-sm font-medium">
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-3">
+              <div className="flex items-center gap-3 mb-3 px-2">
+                <div className="bg-indigo-100 dark:bg-indigo-900/30 p-2 rounded-full">
+                  <UserCircleIcon className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">{user?.displayName || (isGuest ? 'Guest User' : 'User')}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email || (isGuest ? 'Local Mode' : '')}</p>
+                  {user?.metadata.lastSignInTime && (
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      Last login: {new Date(user.metadata.lastSignInTime).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <button onClick={signOut} className="w-full flex items-center justify-center gap-2 text-red-600 dark:text-red-400 text-sm font-bold bg-red-50 dark:bg-red-900/10 py-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
                 <ArrowRightOnRectangleIcon className="w-4 h-4" />
                 התנתק {isGuest ? '(אורח)' : ''}
               </button>

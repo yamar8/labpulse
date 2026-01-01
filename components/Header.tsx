@@ -127,14 +127,14 @@ const Header: React.FC<HeaderProps> = ({
                   title="Profile"
                 >
                   <UserCircleIcon className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
-                  <div className="hidden lg:block text-left">
+                  <div className="hidden lg:block ltr:text-left rtl:text-right">
                     <p className="text-xs font-bold leading-none">{user?.displayName || (isGuest ? 'Guest User' : 'User')}</p>
                     <p className="text-[10px] text-slate-500">{user?.email || (isGuest ? 'Local Mode' : '')}</p>
                   </div>
                 </button>
 
                 {/* Dropdown Menu */}
-                <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all z-50">
+                <div className="absolute ltr:right-0 rtl:left-0 top-full mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all z-50">
                   <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 mb-2">
                     <p className="text-sm font-bold text-slate-900 dark:text-white">{user?.displayName || 'Guest User'}</p>
                     <p className="text-xs text-slate-500 truncate">{user?.email}</p>

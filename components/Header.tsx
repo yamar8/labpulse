@@ -44,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const { t, language, toggleLanguage } = useLanguage();
-  const { signOut, user, isGuest } = useAuth();
+  const { signOut, user, isGuest, previousLoginTime } = useAuth();
 
   return (
     <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40 shadow-sm transition-colors">
@@ -138,9 +138,9 @@ const Header: React.FC<HeaderProps> = ({
                   <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 mb-2">
                     <p className="text-sm font-bold text-slate-900 dark:text-white">{user?.displayName || 'Guest User'}</p>
                     <p className="text-xs text-slate-500 truncate">{user?.email}</p>
-                    {user?.metadata.lastSignInTime && (
+                    {previousLoginTime && (
                       <p className="text-[10px] text-slate-400 mt-2">
-                        Last login: {new Date(user.metadata.lastSignInTime).toLocaleString()}
+                        Last login: {new Date(previousLoginTime).toLocaleString()}
                       </p>
                     )}
                   </div>
@@ -217,9 +217,9 @@ const Header: React.FC<HeaderProps> = ({
                 <div>
                   <p className="text-sm font-bold text-slate-900 dark:text-white">{user?.displayName || (isGuest ? 'Guest User' : 'User')}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email || (isGuest ? 'Local Mode' : '')}</p>
-                  {user?.metadata.lastSignInTime && (
+                  {previousLoginTime && (
                     <p className="text-[10px] text-slate-400 mt-0.5">
-                      Last login: {new Date(user.metadata.lastSignInTime).toLocaleString()}
+                      Last login: {new Date(previousLoginTime).toLocaleString()}
                     </p>
                   )}
                 </div>

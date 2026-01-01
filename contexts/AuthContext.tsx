@@ -6,6 +6,8 @@ import {
     signOut as firebaseSignOut,
     onAuthStateChanged,
     GoogleAuthProvider,
+    updateProfile,
+    sendEmailVerification,
     signInWithPopup
 } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
@@ -15,11 +17,12 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     signIn: (email: string, password: string) => Promise<void>;
-    signUp: (email: string, password: string) => Promise<void>;
+    signUp: (email: string, password: string, name: string) => Promise<void>;
     signInWithGoogle: () => Promise<void>;
     signOut: () => Promise<void>;
     isGuest: boolean;
     continueAsGuest: () => void;
+    previousLoginTime: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -40,9 +43,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [isGuest, setIsGuest] = useState(false);
+    const [previousLoginTime, setPreviousLoginTime] = useState<string | null>(null);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            if (currentUser) {
+                const uid = currentUser.uid;
+                const currentSignInTime = currentUser.metadata.lastSignInTime;
+                const storageKeyCurrent = `auth_last_login_current:${uid}`;
+                const storageKeyPrevious = `auth_last_login_previous:${uid}`;
+
+                const storedCurrent = localStorage.getItem(storageKeyCurrent);
+                const storedPrevious = localStorage.getItem(storageKeyPrevious);
+
+                if (currentSignInTime && storedCurrent !== currentSignInTime) {
+                    // New session detected
+                    localStorage.setItem(storageKeyPrevious, storedCurrent || '');
+                    localStorage.setItem(storageKeyCurrent, currentSignInTime);
+                    setPreviousLoginTime(storedCurrent);
+                } else {
+                    // Same session (refresh), stick with stored previous
+                    setPreviousLoginTime(storedPrevious || null);
+                }
+            } else {
+                setPreviousLoginTime(null);
+            }
             setUser(currentUser);
             setLoading(false);
         });
@@ -54,8 +79,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await signInWithEmailAndPassword(auth, email, password);
     };
 
-    const signUp = async (email: string, password: string) => {
-        await createUserWithEmailAndPassword(auth, email, password);
+    const signUp = async (email: string, password: string, name: string) => {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: name });
+        await sendEmailVerification(userCredential.user);
     };
 
     const signInWithGoogle = async () => {
@@ -68,6 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Clear local app data to prevent next user/guest from seeing previous data
         localStorage.removeItem(APP_STORAGE_KEY);
         setIsGuest(false);
+        setPreviousLoginTime(null);
     };
 
     const continueAsGuest = () => {
@@ -84,7 +112,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         signInWithGoogle,
         signOut,
         isGuest,
-        continueAsGuest
+        continueAsGuest,
+        previousLoginTime
     };
 
     return (

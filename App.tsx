@@ -38,11 +38,12 @@ import {
 import { addWeeks, parseISO } from 'date-fns';
 import { ArrowDownOnSquareIcon, TrashIcon, DocumentDuplicateIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useLanguage } from './contexts/LanguageContext';
+import { sendEmailVerification } from 'firebase/auth';
 
 const App: React.FC = () => {
   // --- State ---
   const { t, language } = useLanguage();
-  const { user, loading, isGuest } = useAuth();
+  const { user, loading, isGuest, signOut } = useAuth();
   const [data, setData] = useState<AppData>(getLocalStorage(APP_STORAGE_KEY, INITIAL_APP_DATA));
   const dataRef = useRef(data);
 
@@ -505,6 +506,61 @@ const App: React.FC = () => {
 
   if (!user && !isGuest) {
     return <Login />;
+  }
+
+  if (user && !user.emailVerified && !isGuest) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
+        <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-700 text-center">
+          <div className="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">אימות אימייל נדרש</h2>
+          <p className="text-slate-600 dark:text-slate-300 mb-6">
+            שלחנו לך אימייל לאימות הכתובת <strong>{user.email}</strong>.<br />
+            יש לאמת את הכתובת כדי להשתמש במערכת.
+          </p>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-xl transition-all"
+            >
+              רענן סטטוס (כבר אימתתי)
+            </button>
+            <button
+              onClick={() => user.reload().then(() => { if (user.emailVerified) window.location.reload(); })}
+              className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+            >
+              בדוק שוב
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  await sendEmailVerification(user);
+                  alert('מייל אימות נשלח שוב!');
+                } catch (e: any) {
+                  if (e.code === 'auth/too-many-requests') {
+                    alert('נשלחו יותר מדי בקשות. נסה שוב מאוחר יותר.');
+                  } else {
+                    alert('שגיאה בשליחת המייל: ' + e.message);
+                  }
+                }
+              }}
+              className="text-sm text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline"
+            >
+              שלח שוב מייל אימות
+            </button>
+          </div>
+          <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+            <button onClick={signOut} className="text-sm text-slate-500 hover:text-red-600">
+              התנתק וחזור למסך הראשי
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

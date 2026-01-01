@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { signInWithEmailAndPassword, updateProfile, sendEmailVerification } from 'firebase/auth';
+import { auth } from '../firebaseConfig';
 
 const Login: React.FC = () => {
     const { signIn, signUp, continueAsGuest, signInWithGoogle } = useAuth();
     const { t } = useLanguage();
     const [isLogin, setIsLogin] = useState(true);
+    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [verificationSent, setVerificationSent] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -20,14 +24,35 @@ const Login: React.FC = () => {
             if (isLogin) {
                 await signIn(email, password);
             } else {
-                await signUp(email, password);
+                try {
+                    await signUp(email, password, name);
+                    setVerificationSent(true);
+                } catch (signUpErr: any) {
+                    if (signUpErr.code === 'auth/email-already-in-use') {
+                        // Try to sign in. If successful and unverified, assume this is a retry and update details.
+                        try {
+                            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                            if (userCredential.user && !userCredential.user.emailVerified) {
+                                // Account exists, password correct, but unverified. Recover it.
+                                await updateProfile(userCredential.user, { displayName: name });
+                                await sendEmailVerification(userCredential.user);
+                                setVerificationSent(true);
+                                return; // Success, allow auto-login via AuthContext
+                            }
+                            // If verified, throw original error to show "Email already in use"
+                        } catch (signInErr) {
+                            // Sign in failed (wrong password?), throw original error
+                        }
+                    }
+                    throw signUpErr;
+                }
             }
         } catch (err: any) {
             console.error(err);
             let message = 'שגיאה בהתחברות. נסה שוב.';
             if (err.code === 'auth/wrong-password') message = 'סיסמה שגויה.';
             if (err.code === 'auth/user-not-found') message = 'משתמש לא נמצא.';
-            if (err.code === 'auth/email-already-in-use') message = 'האימייל כבר בשימוש.';
+            if (err.code === 'auth/email-already-in-use') message = 'כתובת המייל הזו כבר רשומה. אנא נסה להתחבר.';
             if (err.code === 'auth/weak-password') message = 'סיסמה חלשה מדי (לפחות 6 תווים).';
             if (err.code === 'auth/invalid-credential') message = 'פרטים שגויים.';
             if (message === 'שגיאה בהתחברות. נסה שוב.') {
@@ -38,6 +63,31 @@ const Login: React.FC = () => {
             setLoading(false);
         }
     };
+
+    if (verificationSent) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
+                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-700 text-center">
+                    <div className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                        </svg>
+                    </div>
+                    <h2 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">אימות אימייל נשלח</h2>
+                    <p className="text-slate-600 dark:text-slate-300 mb-6">
+                        שלחנו לך אימייל לאימות הכתובת <strong>{email}</strong>.
+                        נא ללחוץ על הלינק באימייל כדי להשלים את ההרשמה.
+                    </p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                    >
+                        חזור להתחברות
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
@@ -53,6 +103,22 @@ const Login: React.FC = () => {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {!isLogin && (
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                שם מלא
+                            </label>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required={!isLogin}
+                                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow"
+                                placeholder="ישראל ישראלי"
+                            />
+                        </div>
+                    )}
+
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                             אימייל

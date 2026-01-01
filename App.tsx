@@ -144,7 +144,8 @@ const App: React.FC = () => {
 
     // If User -> Save to Firestore (ONLY if fully synced first)
     if (isCloudSynced) {
-      saveUserData(user.uid, data).catch(console.error);
+      console.log('Attempting to save data to Firebase...', { userId: user.uid, dataSize: JSON.stringify(data).length });
+      saveUserData(user.uid, data).catch(err => console.error("Save failed:", err));
     }
   }, [data, user, isCloudSynced]);
 

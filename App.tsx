@@ -62,6 +62,9 @@ const App: React.FC = () => {
   const [lastUndoAction, setLastUndoAction] = useState<(() => void) | null>(null);
 
   // --- Effects ---
+  const [isCloudSynced, setIsCloudSynced] = useState(false);
+
+  // --- Effects ---
   useEffect(() => {
     // Update Document Title based on language
     if (language === 'he') {
@@ -74,34 +77,76 @@ const App: React.FC = () => {
       document.documentElement.lang = 'en';
     }
   }, [language]);
-  // Effect: Handle Data Validation / Migration / Title
-  // (We removed the simple setLocalStorage effect to handle conditional logic below)
 
+  // Effect: Handle Data Sync (Load/Subscribe)
   useEffect(() => {
-    // If Guest or Not Logged In -> Save to Local Storage
+    let unsubscribe: (() => void) | undefined;
+
+    const initSync = async () => {
+      if (user) {
+        setIsCloudSynced(false);
+        try {
+          // 1. Initial Check: Does cloud data exist?
+          const cloudData = await loadUserData(user.uid);
+
+          if (cloudData) {
+            // Case A: Existing User -> Load Cloud Data
+            setData(validateAndMigrateAppData(cloudData));
+            setIsCloudSynced(true);
+          } else {
+            // Case B: New User -> Bootstrap with current local data
+            await saveUserData(user.uid, data);
+            setIsCloudSynced(true);
+          }
+
+          // 2. Setup Real-time Listener for cross-device sync
+          // We use require('./firebaseService').subscribeToUserData to avoid circular dep issues if any,
+          // but standard import is fine.
+          const { subscribeToUserData } = await import('./firebaseService');
+          unsubscribe = subscribeToUserData(user.uid, (newData) => {
+            setData(prev => {
+              // Deep compare to avoid infinite loops with the save effect
+              if (JSON.stringify(prev) === JSON.stringify(newData)) {
+                return prev;
+              }
+              console.log("Received update from cloud", newData);
+              return validateAndMigrateAppData(newData);
+            });
+          });
+
+        } catch (error) {
+          console.error("Failed to sync with Firebase:", error);
+          // Fallback: allow local usage but maybe warn user? 
+          // For now, we set sync true to allow saving local changes later if connection restores
+          setIsCloudSynced(true);
+        }
+      } else {
+        // Guest Mode
+        setIsCloudSynced(false);
+      }
+    };
+
+    initSync();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); // Only re-run on user change (login/logout)
+
+  // Effect: Handle Data Persistence (Save)
+  useEffect(() => {
+    // If Guest -> Save to Local Storage
     if (!user) {
       setLocalStorage(APP_STORAGE_KEY, data);
-    } else {
-      // If Logged In -> Save to Firestore
-      // Debouncing could be good here, but for now direct save
+      return;
+    }
+
+    // If User -> Save to Firestore (ONLY if fully synced first)
+    if (isCloudSynced) {
       saveUserData(user.uid, data).catch(console.error);
     }
-  }, [data, user]);
-
-  useEffect(() => {
-    // Load Data on Login
-    if (user) {
-      loadUserData(user.uid).then((cloudData) => {
-        if (cloudData) {
-          // Found data in cloud -> Use it
-          setData(validateAndMigrateAppData(cloudData));
-        } else {
-          // No data in cloud (New User) -> Upload current local data (Bootstrap account)
-          saveUserData(user.uid, data);
-        }
-      });
-    }
-  }, [user]);
+  }, [data, user, isCloudSynced]);
 
   useEffect(() => {
     // Privacy: Only save API Key to Local Storage if rememberApiKey is true

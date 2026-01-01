@@ -12,7 +12,8 @@ import {
   ArchiveBoxIcon,
   CalendarDaysIcon,
   LanguageIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  Bars3Icon
 } from '@heroicons/react/24/outline';
 
 interface HeaderProps {
@@ -146,7 +147,7 @@ const Header: React.FC<HeaderProps> = ({
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
           >
-            <TableCellsIcon className="w-6 h-6" />
+            <Bars3Icon className="w-6 h-6" />
           </button>
         </div>
       </div>

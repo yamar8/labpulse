@@ -284,7 +284,7 @@ const App: React.FC = () => {
     const newTask: Task = {
       id: generateUUID(),
       experimentId,
-      title: 'משימה חדשה',
+      title: '',
       description: '',
       weekId,
       status: TaskStatus.DEFAULT,

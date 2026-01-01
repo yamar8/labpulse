@@ -222,7 +222,7 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
     const newTask: Task = {
       id: generateUUID(),
       experimentId: experiment.id,
-      title: 'משימה חדשה',
+      title: '',
       description: '',
       weekId: normalizeToSunday(experiment.startDate),
       status: TaskStatus.DEFAULT,

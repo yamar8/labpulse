@@ -411,7 +411,7 @@ const App: React.FC = () => {
           // Instead of setting immediately, set candidate for Modal
           setImportCandidate(validatedData);
         } catch (error: any) {
-          alert("שגיאה בייבוא הקובץ: " + error.message);
+          alert(t.importExport.importError + ": " + error.message);
         }
       };
       reader.readAsText(file);
@@ -455,14 +455,14 @@ const App: React.FC = () => {
     }));
 
     setImportCandidate(null);
-    alert("יובאו בהצלחה: " + newExperiments.length + " ניסויים, " + newTasks.length + " משימות.");
+    alert(t.importExport.importSuccess.replace('{experiments}', newExperiments.length.toString()).replace('{tasks}', newTasks.length.toString()));
   };
 
   const handleReplaceImport = () => {
     if (!importCandidate) return;
     setData(importCandidate);
     setImportCandidate(null);
-    alert("הנתונים הוחלפו בהצלחה.");
+    alert(t.importExport.replaceSuccess);
   };
 
   // --- AI Actions Logic ---
@@ -479,7 +479,7 @@ const App: React.FC = () => {
       const newTask: Task = {
         id: generateUUID(),
         experimentId: expId,
-        title: payload.taskData?.title || 'משימה AI',
+        title: payload.taskData?.title || t.common.new + ' AI',
         description: payload.taskData?.description || '',
         weekId,
         status: TaskStatus.DEFAULT,
@@ -510,16 +510,16 @@ const App: React.FC = () => {
   };
 
   const handleExportCsv = () => {
-    const headers = ['ניסוי', 'משימה', 'שבוע', 'סטטוס', 'חשיבות', 'הושלם'].map(csvEscape);
+    const headers = [t.csv.experiment, t.csv.task, t.csv.week, t.csv.status, t.csv.importance, t.csv.completed].map(csvEscape);
     const rows = data.tasks.map(t => {
       const exp = data.experiments.find(e => e.id === t.experimentId);
       return [
-        exp?.name || 'לא ידוע',
+        exp?.name || t.common.notImplemented,
         t.title,
         t.weekId,
         t.status,
         t.importance,
-        t.completed ? 'כן' : 'לא'
+        t.completed ? t.csv.yes : t.csv.no
       ].map(csvEscape).join(',');
     });
     const csvContent = "\uFEFF" + [headers.join(','), ...rows].join('\n');
@@ -550,19 +550,18 @@ const App: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">הגישה נדחתה</h2>
-          <p className="text-slate-600 dark:text-slate-300 mb-6">
-            המשתמש <strong>{user.email}</strong> אינו מורשה להשתמש במערכת זו.
-            <br />
-            אנא פנה למנהל המערכת לקבלת גישה.
-          </p>
-          <div className="mt-6 border-t border-slate-200 dark:border-slate-700 pt-4">
-            <button onClick={signOut} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg transition-colors">
-              התנתק
-            </button>
-          </div>
+        </div>
+        <h2 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">{t.auth.accessDenied}</h2>
+        <p className="text-slate-600 dark:text-slate-300 mb-6">
+          {t.auth.accessDeniedMessage.replace('{email}', user.email || '')}
+        </p>
+        <div className="mt-6 border-t border-slate-200 dark:border-slate-700 pt-4">
+          <button onClick={signOut} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg transition-colors">
+            {t.auth.logout}
+          </button>
         </div>
       </div>
+
     );
   }
 
@@ -579,45 +578,44 @@ const App: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">אימות אימייל נדרש</h2>
+          <h2 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">{t.auth.verificationRequired}</h2>
           <p className="text-slate-600 dark:text-slate-300 mb-6">
-            שלחנו לך אימייל לאימות הכתובת <strong>{user.email}</strong>.<br />
-            יש לאמת את הכתובת כדי להשתמש במערכת.
+            {t.auth.verificationMessage.replace('{email}', user.email || '')}
           </p>
           <div className="flex flex-col gap-3">
             <button
               onClick={() => window.location.reload()}
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-xl transition-all"
             >
-              רענן סטטוס (כבר אימתתי)
+              {t.auth.alreadyVerified}
             </button>
             <button
               onClick={() => user.reload().then(() => { if (user.emailVerified) window.location.reload(); })}
               className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
             >
-              בדוק שוב
+              {t.auth.checkAgain}
             </button>
             <button
               onClick={async () => {
                 try {
                   await sendEmailVerification(user);
-                  alert('מייל אימות נשלח שוב!');
+                  alert(t.auth.emailSentAgain);
                 } catch (e: any) {
                   if (e.code === 'auth/too-many-requests') {
-                    alert('נשלחו יותר מדי בקשות. נסה שוב מאוחר יותר.');
+                    alert(t.auth.tooManyRequests);
                   } else {
-                    alert('שגיאה בשליחת המייל: ' + e.message);
+                    alert(t.auth.emailError + ': ' + e.message);
                   }
                 }
               }}
               className="text-sm text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline"
             >
-              שלח שוב מייל אימות
+              {t.auth.resendEmail}
             </button>
           </div>
           <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
             <button onClick={signOut} className="text-sm text-slate-500 hover:text-red-600">
-              התנתק וחזור למסך הראשי
+              {t.auth.logoutAndReturn}
             </button>
           </div>
         </div>
@@ -669,7 +667,7 @@ const App: React.FC = () => {
             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-between">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <ArrowDownOnSquareIcon className="w-5 h-5 text-indigo-600" />
-                ייבוא נתונים
+                {t.importExport.title}
               </h3>
               <button onClick={() => setImportCandidate(null)} className="text-slate-400">
                 <XMarkIcon className="w-5 h-5" />
@@ -677,8 +675,9 @@ const App: React.FC = () => {
             </div>
             <div className="p-6 space-y-4">
               <p className="text-slate-600 dark:text-slate-300">
-                נמצאו <strong>{importCandidate.experiments.length}</strong> ניסויים ו-<strong>{importCandidate.tasks.length}</strong> משימות בקובץ.
-                כיצד תרצה להמשיך?
+                {t.importExport.foundDataMessage.replace('{experiments}', importCandidate.experiments.length.toString()).replace('{tasks}', importCandidate.tasks.length.toString())}
+                <br />
+                {t.importExport.howToProceed}
               </p>
 
               <div className="grid gap-3">
@@ -690,8 +689,8 @@ const App: React.FC = () => {
                     <DocumentDuplicateIcon className="w-6 h-6" />
                   </div>
                   <div>
-                    <span className="block font-bold text-indigo-900 dark:text-indigo-100">מיזוג (הוסף לקיים)</span>
-                    <span className="text-xs text-indigo-700 dark:text-indigo-300">הוסף את הנתונים החדשים לצד הנתונים הקיימים (מומלץ)</span>
+                    <span className="block font-bold text-indigo-900 dark:text-indigo-100">{t.importExport.merge}</span>
+                    <span className="text-xs text-indigo-700 dark:text-indigo-300">{t.importExport.mergeDesc}</span>
                   </div>
                 </button>
 
@@ -703,15 +702,15 @@ const App: React.FC = () => {
                     <TrashIcon className="w-6 h-6" />
                   </div>
                   <div>
-                    <span className="block font-bold text-red-900 dark:text-red-100">החלפה (מחק הכל)</span>
-                    <span className="text-xs text-red-700 dark:text-red-300">מחק את כל הנתונים הנוכחיים וטען את הקובץ החדש</span>
+                    <span className="block font-bold text-red-900 dark:text-red-100">{t.importExport.replace}</span>
+                    <span className="text-xs text-red-700 dark:text-red-300">{t.importExport.replaceDesc}</span>
                   </div>
                 </button>
               </div>
             </div>
             <div className="px-6 py-3 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex justify-end">
               <button onClick={() => setImportCandidate(null)} className="text-sm font-bold text-slate-500 hover:text-slate-700 px-4 py-2">
-                ביטול
+                {t.common.cancel}
               </button>
             </div>
           </div>

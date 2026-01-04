@@ -106,7 +106,7 @@ const Header: React.FC<HeaderProps> = ({
 
           <div className="h-6 w-px bg-slate-200 dark:bg-slate-600 mx-2"></div>
 
-          <button onClick={toggleLanguage} className="flex items-center gap-1 px-2 py-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors font-bold text-xs" title={language === 'he' ? 'Switch to English' : 'החלף לעברית'}>
+          <button onClick={toggleLanguage} className="flex items-center gap-1 px-2 py-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors font-bold text-xs" title={t.header.switchLanguage}>
             <span className="text-base">{language === 'he' ? '🇺🇸' : '🇮🇱'}</span>
             <span>{language === 'he' ? 'EN' : 'HE'}</span>
           </button>
@@ -124,23 +124,23 @@ const Header: React.FC<HeaderProps> = ({
               <div className="relative group">
                 <button
                   className="flex items-center gap-2 p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-600"
-                  title="Profile"
+                  title={t.header.profile}
                 >
                   <UserCircleIcon className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
                   <div className="hidden lg:block ltr:text-left rtl:text-right">
-                    <p className="text-xs font-bold leading-none">{user?.displayName || (isGuest ? 'Guest User' : 'User')}</p>
-                    <p className="text-[10px] text-slate-500">{user?.email || (isGuest ? 'Local Mode' : '')}</p>
+                    <p className="text-xs font-bold leading-none">{user?.displayName || (isGuest ? t.header.guestUserLabel : 'User')}</p>
+                    <p className="text-[10px] text-slate-500">{user?.email || (isGuest ? t.header.localMode : '')}</p>
                   </div>
                 </button>
 
                 {/* Dropdown Menu */}
                 <div className="absolute ltr:right-0 rtl:left-0 top-full mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all z-50">
                   <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 mb-2">
-                    <p className="text-sm font-bold text-slate-900 dark:text-white">{user?.displayName || 'Guest User'}</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">{user?.displayName || t.header.guestUserLabel}</p>
                     <p className="text-xs text-slate-500 truncate">{user?.email}</p>
                     {previousLoginTime && (
                       <p className="text-[10px] text-slate-400 mt-2">
-                        Last login: {new Date(previousLoginTime).toLocaleString()}
+                        {t.header.lastLogin} {new Date(previousLoginTime).toLocaleString()}
                       </p>
                     )}
                   </div>
@@ -150,7 +150,7 @@ const Header: React.FC<HeaderProps> = ({
                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                   >
                     <ArrowRightOnRectangleIcon className="w-4 h-4" />
-                    <span>Log Out</span>
+                    <span>{t.header.logout}</span>
                   </button>
                 </div>
               </div>
@@ -215,18 +215,18 @@ const Header: React.FC<HeaderProps> = ({
                   <UserCircleIcon className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{user?.displayName || (isGuest ? 'Guest User' : 'User')}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email || (isGuest ? 'Local Mode' : '')}</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">{user?.displayName || (isGuest ? t.header.guestUserLabel : 'User')}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email || (isGuest ? t.header.localMode : '')}</p>
                   {previousLoginTime && (
                     <p className="text-[10px] text-slate-400 mt-0.5">
-                      Last login: {new Date(previousLoginTime).toLocaleString()}
+                      {t.header.lastLogin} {new Date(previousLoginTime).toLocaleString()}
                     </p>
                   )}
                 </div>
               </div>
               <button onClick={signOut} className="w-full flex items-center justify-center gap-2 text-red-600 dark:text-red-400 text-sm font-bold bg-red-50 dark:bg-red-900/10 py-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
                 <ArrowRightOnRectangleIcon className="w-4 h-4" />
-                התנתק {isGuest ? '(אורח)' : ''}
+                {t.header.logout} {isGuest ? `(${t.header.guestUser})` : ''}
               </button>
             </div>
           )}

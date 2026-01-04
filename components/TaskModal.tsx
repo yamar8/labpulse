@@ -49,11 +49,13 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, allTasks, experimentName, s
     setQuestions([]);
     setActiveQuestion(null);
     try {
-      const context = `משימה: ${editedTask.title}. תיאור מפורט: ${editedTask.description}`;
-      const q = await getGuidingQuestions(settings, context);
+      const context = t.taskModal.aiContext
+        .replace('{title}', editedTask.title)
+        .replace('{description}', editedTask.description);
+      const q = await getGuidingQuestions(settings, context, t, language);
       setQuestions(q);
     } catch (e) {
-      alert("שגיאה בגישה ל-AI");
+      alert(t.taskModal.aiError);
     } finally {
       setLoading(false);
     }
@@ -67,14 +69,16 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, allTasks, experimentName, s
         settings,
         editedTask.description,
         activeQuestion,
-        userAnswer
+        userAnswer,
+        t,
+        language
       );
       setEditedTask({ ...editedTask, description: newDesc });
       setUserAnswer('');
       setActiveQuestion(null);
       setQuestions(prev => prev.filter(q => q !== activeQuestion));
     } catch (e) {
-      alert("שגיאה בעדכון התיאור");
+      alert(t.taskModal.descUpdateError);
     } finally {
       setRefining(false);
     }
@@ -83,7 +87,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, allTasks, experimentName, s
   const handleAddDependency = (taskId: string) => {
     if (taskId && !editedTask.dependencies.includes(taskId)) {
       if (hasCircularDependency(allTasks, editedTask.id, taskId)) {
-        alert("לא ניתן להוסיף תלות זו מכיוון שהיא יוצרת מעגל תלות.");
+        alert(t.taskModal.circularDependencyError);
         return;
       }
       setEditedTask({
@@ -102,7 +106,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, allTasks, experimentName, s
 
   const addToGoogleCalendar = () => {
     const title = encodeURIComponent(`[LabPulse] ${editedTask.title}`);
-    const details = encodeURIComponent(`${editedTask.description}\n\nניסוי: ${experimentName || 'כללי'}`);
+    const details = encodeURIComponent(`${editedTask.description}\n\n${t.aiChat.experiment}: ${experimentName || t.common.notImplemented}`); // Using existing keys or generic
     const startDate = parseISO(editedTask.weekId);
     const endDate = addDays(startDate, 1);
     const dates = `${format(startDate, 'yyyyMMdd')}/${format(endDate, 'yyyyMMdd')}`;
@@ -174,7 +178,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, allTasks, experimentName, s
               onChange={e => setEditedTask({ ...editedTask, status: e.target.value as TaskStatus })}
               className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl px-4 py-2 outline-none bg-white dark:bg-slate-700"
             >
-              {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{t.taskStatus[opt.value] || opt.label}</option>)}
             </select>
           </div>
           <div>
@@ -242,7 +246,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, allTasks, experimentName, s
                         }
                       }}
                       className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200 whitespace-nowrap"
-                      title="השב לשאלה"
+                      title={t.taskModal.replyToQuestion}
                     >
                       {activeQuestion === q ? <XMarkIcon className="w-4 h-4" /> : <ChatBubbleLeftRightIcon className="w-4 h-4" />}
                     </button>
@@ -253,7 +257,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, allTasks, experimentName, s
                       <textarea
                         value={userAnswer}
                         onChange={(e) => setUserAnswer(e.target.value)}
-                        placeholder="הקלד את תשובתך כאן..."
+                        placeholder={t.taskModal.typeAnswerPlaceholder}
                         className="w-full text-xs p-2 border border-indigo-200 dark:border-slate-500 rounded-lg outline-none focus:border-indigo-400 dark:bg-slate-800 dark:text-white"
                         rows={2}
                       />
@@ -294,7 +298,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, allTasks, experimentName, s
                         type="button"
                         onClick={() => handleRemoveDependency(depId)}
                         className="text-slate-400 hover:text-red-500 transition-colors p-1"
-                        title="הסר תלות"
+                        title={t.taskModal.removeDependency}
                       >
                         <XMarkIcon className="w-4 h-4" />
                       </button>

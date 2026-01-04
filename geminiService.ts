@@ -2,6 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AiSettings, ResearchPlanDraft, TableAiAction, TaskStatus, Experiment, Task } from "./types";
 import { format } from "date-fns";
+import { TranslationDictionary } from "./types/i18n";
 
 /**
  * Service to interact with the Google Gemini API.
@@ -14,7 +15,7 @@ const getAiClient = (apiKey?: string) => {
 /**
  * Helper to construct the Style & Persona instruction block
  */
-const getPersonaInstruction = (settings: AiSettings) => {
+const getPersonaInstruction = (settings: AiSettings, language: string) => {
   const styleInstructions = {
     professional: "Tone: Formal, Business-oriented. Focus: Actionable insights, clear bottom lines. Vocabulary: Professional industry terms.",
     academic: "Tone: Rigorous, Scientific, Objective. Focus: Methodology, Analysis, Critical thinking. Vocabulary: Academic/Scientific terminology.",
@@ -29,7 +30,7 @@ const getPersonaInstruction = (settings: AiSettings) => {
 
   return `
     *** AI PERSONA CONFIGURATION ***
-    - RESPONSE LANGUAGE: ${settings.aiLanguage || 'Hebrew'}
+    - RESPONSE LANGUAGE: ${language === 'he' ? 'Hebrew' : 'English'}
     - SELECTED STYLE: ${settings.aiStyle}
     - STYLE GUIDELINES: ${styleInstructions[settings.aiStyle as keyof typeof styleInstructions] || styleInstructions.professional}
     - DETAIL LEVEL: ${settings.aiDetailLevel} (Reference: concise=brief summaries, balanced=standard paragraphs, comprehensive=deep dive).
@@ -50,18 +51,18 @@ const getPersonaInstruction = (settings: AiSettings) => {
  */
 export const generatePlanFromProposal = async (
   settings: AiSettings,
-  proposalText: string
+  proposalText: string,
+  t: TranslationDictionary,
+  language: string
 ): Promise<ResearchPlanDraft> => {
   if (settings.mockMode) {
     await new Promise(resolve => setTimeout(resolve, 1500));
     return {
-      objectives: ["מטרה 1: בחינת השפעת הדישון", "מטרה 2: מדידת קצב צימוח"],
-      phases: [{ name: "הכנה", durationWeeks: 1 }, { name: "ביצוע", durationWeeks: 4 }],
+      objectives: [t.aiMock.planResponse, t.aiMock.phaseExec],
+      phases: [{ name: t.aiMock.phasePrep, durationWeeks: 1 }, { name: t.aiMock.phaseExec, durationWeeks: 4 }],
       tasks: [
-        { title: "הכנת מצע גידול", description: "ערבוב קרקע עם דשן בסיסי", weekOffset: 0, importance: 4, status: TaskStatus.IMPORTANT, tags: [] },
-        { title: "זריעה", description: "זריעת זרעי הניסוי במיכלים", weekOffset: 1, importance: 5, status: TaskStatus.IMPORTANT, tags: [], dependsOnTaskIndex: [0] },
-        { title: "ניטור שבועי", description: "מדידת גובה צמח", weekOffset: 2, importance: 3, status: TaskStatus.DEFAULT, tags: [], recurrence: { frequency: 'weekly', count: 4 } },
-        { title: "דישון משלים", description: "הוספת דשן נוזלי", weekOffset: 3, importance: 4, status: TaskStatus.INFO, tags: [] },
+        { title: t.aiMock.taskTitle, description: t.aiMock.taskDesc, weekOffset: 0, importance: 4, status: TaskStatus.IMPORTANT, tags: [] },
+        { title: t.aiMock.taskTitle + " 2", description: t.aiMock.taskDesc, weekOffset: 1, importance: 5, status: TaskStatus.IMPORTANT, tags: [], dependsOnTaskIndex: [0] },
       ]
     };
   }
@@ -70,7 +71,7 @@ export const generatePlanFromProposal = async (
   const response = await ai.models.generateContent({
     model: settings.modelStructured || 'gemini-3-pro-preview',
     contents: `Analyze the following research proposal and generate a structured work plan.
-    ${getPersonaInstruction(settings)}
+    ${getPersonaInstruction(settings, language)}
     
     Proposal Text: ${proposalText}
     
@@ -112,8 +113,8 @@ export const generatePlanFromProposal = async (
                 recurrence: {
                   type: Type.OBJECT,
                   properties: {
-                     frequency: { type: Type.STRING, enum: ['weekly'] },
-                     count: { type: Type.NUMBER }
+                    frequency: { type: Type.STRING, enum: ['weekly'] },
+                    count: { type: Type.NUMBER }
                   }
                 },
                 dependsOnTaskIndex: {
@@ -138,24 +139,16 @@ export const generatePlanFromProposal = async (
  */
 export const getGuidingQuestions = async (
   settings: AiSettings,
-  context: string
+  context: string,
+  t: TranslationDictionary,
+  language: string
 ): Promise<string[]> => {
   if (settings.mockMode) {
-    // Generate context-aware mock questions
-    const taskTitleMatch = context.match(/משימה: (.*?)\./);
-    const title = taskTitleMatch ? taskTitleMatch[1] : "המשימה";
-
-    const allQuestions = [
-      `האם הוגדרו מדדי הצלחה ברורים עבור "${title}"?`,
-      `האם נדרש ציוד מיוחד לביצוע "${title}" שלא הוכן מראש?`,
-      "האם ישנם סיכונים בטיחותיים בשלב זה?",
-      "האם תנאי הסביבה (טמפ', לחות) קריטיים לביצוע?",
-      "האם יש צורך בתיעוד חריג או צילום במהלך הביצוע?",
-      "האם שלב זה תלוי בתוצאות של שלב קודם שטרם אומת?"
+    return [
+      t.aiMock.queryResponse + " 1?",
+      t.aiMock.queryResponse + " 2?",
+      t.aiMock.queryResponse + " 3?"
     ];
-    // Randomly shuffle and return N questions
-    const shuffled = allQuestions.sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, settings.numGuidingQuestions);
   }
 
   const ai = getAiClient(settings.apiKey);
@@ -169,7 +162,7 @@ export const getGuidingQuestions = async (
     
     Random Seed: ${randomSeed}
     
-    ${getPersonaInstruction(settings)}`,
+    ${getPersonaInstruction(settings, language)}`,
     config: {
       temperature: settings.temperature,
       responseMimeType: "application/json",
@@ -194,11 +187,13 @@ export const smartRefineDescription = async (
   settings: AiSettings,
   currentDescription: string,
   question: string,
-  userAnswer: string
+  userAnswer: string,
+  t: TranslationDictionary,
+  language: string
 ): Promise<string> => {
   if (settings.mockMode) {
     // Simulate a rewrite instead of append
-    return `[גרסה ערוכה] ${currentDescription}. בנוסף, בהקשר ל"${question}", נקבע כי: ${userAnswer}. (זוהי הדמיה של עריכה מחדש)`;
+    return `[${t.common.edit}] ${currentDescription}. ${question}: ${userAnswer}. (${t.aiMock.planResponse})`;
   }
 
   const ai = getAiClient(settings.apiKey);
@@ -219,7 +214,9 @@ export const smartRefineDescription = async (
     4. Keep the text concise but comprehensive.
     5. Return ONLY the new description text.
     
-    ${getPersonaInstruction(settings)}
+    5. Return ONLY the new description text.
+    
+    ${getPersonaInstruction(settings, language)}
     `,
     config: {
       temperature: settings.temperature
@@ -236,16 +233,18 @@ export const getTableAction = async (
   settings: AiSettings,
   prompt: string,
   experiments: Experiment[],
-  allTasks: Task[]
+  allTasks: Task[],
+  t: TranslationDictionary,
+  language: string
 ): Promise<TableAiAction> => {
-  
+
   const contextSummary = JSON.stringify({
     currentDate: format(new Date(), 'yyyy-MM-dd'),
     experiments: experiments.map(e => ({ id: e.id, name: e.name })),
-    tasks: allTasks.map(t => ({ 
-      id: t.id, 
-      title: t.title, 
-      status: t.status, 
+    tasks: allTasks.map(t => ({
+      id: t.id,
+      title: t.title,
+      status: t.status,
       date: t.weekId,
       importance: t.importance,
       completed: t.completed,
@@ -253,24 +252,23 @@ export const getTableAction = async (
     }))
   });
 
-  if (settings.mockMode) {
-    if (prompt.includes("משימה")) {
-      return {
-        action: 'add_task',
-        payload: {
-          taskData: { title: "משימה חדשה (הדמיה)", description: "נוצרה במצב Mock" },
-          experimentId: experiments[0]?.id,
-          weekOffset: 1
-        },
-        textResponse: "במצב הדמיה: זיהיתי בקשה להוספת משימה. בהמשך אוסיף משימה לדוגמה.",
-      };
-    }
+  if (prompt.includes(t.reports.task) || prompt.includes("Task")) {
     return {
-      action: 'query',
-      payload: {},
-      textResponse: "אני במצב הדמיה. אני רואה שיש לך " + allTasks.length + " משימות במערכת.",
+      action: 'add_task',
+      payload: {
+        taskData: { title: t.aiMock.taskTitle, description: t.aiMock.taskDesc },
+        experimentId: experiments[0]?.id,
+        weekOffset: 1
+      },
+      textResponse: t.aiMock.planResponse + ": " + t.common.new,
     };
   }
+  return {
+    action: 'query',
+    payload: {},
+    textResponse: t.aiMock.queryResponse + " " + allTasks.length + " " + t.reports.task,
+  };
+
 
   const ai = getAiClient(settings.apiKey);
   const systemInstruction = `You are a smart assistant for a Research Experiment Management Board.
@@ -297,7 +295,7 @@ export const getTableAction = async (
      - Analyze the 'contextSummary' JSON provided.
      - Write a detailed answer in the 'textResponse' field.
   
-  ${getPersonaInstruction(settings)}
+  ${getPersonaInstruction(settings, language)}
   `;
 
   const response = await ai.models.generateContent({
@@ -320,9 +318,9 @@ export const getTableAction = async (
               experimentId: { type: Type.STRING },
               taskId: { type: Type.STRING },
               weekOffset: { type: Type.NUMBER },
-              taskData: { 
-                type: Type.OBJECT, 
-                properties: { 
+              taskData: {
+                type: Type.OBJECT,
+                properties: {
                   title: { type: Type.STRING, description: "Specific title extracted from prompt" },
                   description: { type: Type.STRING },
                   status: { type: Type.STRING },
@@ -354,17 +352,19 @@ export const getTableAction = async (
 export const generateSummary = async (
   settings: AiSettings,
   type: 'weekly' | 'monthly' | 'experiment',
-  data: string
+  data: string,
+  t: TranslationDictionary,
+  language: string
 ): Promise<string> => {
   if (settings.mockMode) {
-    return `זהו סיכום הדמיה עבור ${type}. במצב אמת, AI ינתח את המשימות וההישגים שלך.`;
+    return `${t.aiMock.planResponse} (${type})...`;
   }
 
   const ai = getAiClient(settings.apiKey);
   const response = await ai.models.generateContent({
     model: settings.modelText || 'gemini-3-flash-preview',
     contents: `Provide a summary for ${type} based on the following task data: ${data}.
-    ${getPersonaInstruction(settings)}`,
+    ${getPersonaInstruction(settings, language)}`,
     config: {
       temperature: settings.temperature
     }
@@ -379,10 +379,12 @@ export const generateSummary = async (
 export const generateExperimentReport = async (
   settings: AiSettings,
   experiment: Experiment,
-  tasks: Task[]
+  tasks: Task[],
+  t: TranslationDictionary,
+  language: string
 ): Promise<string> => {
   if (settings.mockMode) {
-    return "דו\"ח ניסוי (הדמיה):\n\nבניסוי זה נבדקו השפעות משתנות על צמח החיטה...\n\nמהלך הניסוי:\n- שבוע 1: הכנות\n- שבוע 2: זריעה\n...";
+    return t.aiMock.reportResponse;
   }
 
   const expData = JSON.stringify({
@@ -407,7 +409,7 @@ export const generateExperimentReport = async (
     
     Data: ${expData}
     
-    ${getPersonaInstruction(settings)}
+    ${getPersonaInstruction(settings, language)}
 
     Guidelines (Override only if User Custom Instructions disagree):
     - Include a chronological timeline of what was done based on the tasks and their completion status.
@@ -418,5 +420,5 @@ export const generateExperimentReport = async (
     }
   });
 
-  return response.text || "לא ניתן היה לייצר דו\"ח.";
+  return response.text || t.common.error;
 };

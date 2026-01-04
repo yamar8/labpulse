@@ -49,13 +49,13 @@ const Login: React.FC = () => {
             }
         } catch (err: any) {
             console.error(err);
-            let message = 'שגיאה בהתחברות. נסה שוב.';
-            if (err.code === 'auth/wrong-password') message = 'סיסמה שגויה.';
-            if (err.code === 'auth/user-not-found') message = 'משתמש לא נמצא.';
-            if (err.code === 'auth/email-already-in-use') message = 'כתובת המייל הזו כבר רשומה. אנא נסה להתחבר.';
-            if (err.code === 'auth/weak-password') message = 'סיסמה חלשה מדי (לפחות 6 תווים).';
-            if (err.code === 'auth/invalid-credential') message = 'פרטים שגויים.';
-            if (message === 'שגיאה בהתחברות. נסה שוב.') {
+            let message = t.login.loginError;
+            if (err.code === 'auth/wrong-password') message = t.login.wrongPassword;
+            if (err.code === 'auth/user-not-found') message = t.login.userNotFound;
+            if (err.code === 'auth/email-already-in-use') message = t.login.emailInUse;
+            if (err.code === 'auth/weak-password') message = t.login.weakPassword;
+            if (err.code === 'auth/invalid-credential') message = t.login.invalidCredential;
+            if (message === t.login.loginError) {
                 message += ` (${err.code})`;
             }
             setError(message);
@@ -73,16 +73,15 @@ const Login: React.FC = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                         </svg>
                     </div>
-                    <h2 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">אימות אימייל נשלח</h2>
+                    <h2 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">{t.login.verificationSentTitle}</h2>
                     <p className="text-slate-600 dark:text-slate-300 mb-6">
-                        שלחנו לך אימייל לאימות הכתובת <strong>{email}</strong>.
-                        נא ללחוץ על הלינק באימייל כדי להשלים את ההרשמה.
+                        {t.login.verificationSentMessage.replace('{email}', email)}
                     </p>
                     <button
                         onClick={() => window.location.reload()}
                         className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
                     >
-                        חזור להתחברות
+                        {t.login.backToLogin}
                     </button>
                 </div>
             </div>
@@ -93,7 +92,7 @@ const Login: React.FC = () => {
         <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
             <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-700">
                 <h2 className="text-3xl font-bold text-center mb-6 text-slate-900 dark:text-white">
-                    {isLogin ? 'התחברות' : 'הרשמה'}
+                    {isLogin ? t.login.loginTitle : t.login.signupTitle}
                 </h2>
 
                 {error && (
@@ -106,7 +105,7 @@ const Login: React.FC = () => {
                     {!isLogin && (
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                שם מלא
+                                {t.login.fullName}
                             </label>
                             <input
                                 type="text"
@@ -114,14 +113,14 @@ const Login: React.FC = () => {
                                 onChange={(e) => setName(e.target.value)}
                                 required={!isLogin}
                                 className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow"
-                                placeholder="ישראל ישראלי"
+                                placeholder={t.login.fullNamePlaceholder}
                             />
                         </div>
                     )}
 
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            אימייל
+                            {t.login.email}
                         </label>
                         <input
                             type="email"
@@ -129,14 +128,14 @@ const Login: React.FC = () => {
                             onChange={(e) => setEmail(e.target.value)}
                             required
                             className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow"
-                            placeholder="your@email.com"
+                            placeholder={t.login.emailPlaceholder}
                             dir="ltr"
                         />
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            סיסמה
+                            {t.login.password}
                         </label>
                         <input
                             type="password"
@@ -144,7 +143,7 @@ const Login: React.FC = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow"
-                            placeholder="******"
+                            placeholder={t.login.passwordPlaceholder}
                             dir="ltr"
                         />
                     </div>
@@ -154,14 +153,14 @@ const Login: React.FC = () => {
                         disabled={loading}
                         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {loading ? 'טוען...' : (isLogin ? 'התחבר' : 'הירשם')}
+                        {loading ? t.common.loading : (isLogin ? t.login.loginBtn : t.login.signupBtn)}
                     </button>
                     <div className="relative my-6">
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-slate-300 dark:border-slate-600"></div>
                         </div>
                         <div className="relative flex justify-center text-sm">
-                            <span className="px-2 bg-white dark:bg-slate-800 text-slate-500">או</span>
+                            <span className="px-2 bg-white dark:bg-slate-800 text-slate-500">{t.login.or}</span>
                         </div>
                     </div>
 
@@ -174,7 +173,7 @@ const Login: React.FC = () => {
                                 await signInWithGoogle();
                             } catch (err: any) {
                                 console.error(err);
-                                setError('שגיאה בהתחברות עם גוגל (' + err.code + ')');
+                                setError(t.login.googleLoginError + ' (' + err.code + ')');
                             } finally {
                                 setLoading(false);
                             }
@@ -200,7 +199,7 @@ const Login: React.FC = () => {
                                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                             />
                         </svg>
-                        התחבר עם Google
+                        {t.login.googleLogin}
                     </button>
 
                 </form>
@@ -210,7 +209,7 @@ const Login: React.FC = () => {
                         onClick={() => setIsLogin(!isLogin)}
                         className="text-indigo-600 dark:text-indigo-400 hover:underline text-sm font-medium"
                     >
-                        {isLogin ? 'אין לך חשבון? הירשם כאן' : 'יש לך חשבון? התחבר כאן'}
+                        {isLogin ? t.login.noAccount : t.login.hasAccount}
                     </button>
 
                     <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
@@ -219,7 +218,7 @@ const Login: React.FC = () => {
                             type="button"
                             className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium transition-colors"
                         >
-                            המשך כאורח (ללא שמירה בענן)
+                            {t.login.guestMode}
                         </button>
                     </div>
                 </div>

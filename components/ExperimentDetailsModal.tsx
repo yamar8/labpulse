@@ -134,10 +134,10 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
     setQuestions([]);
     setActiveQuestion(null);
     try {
-      const q = await getGuidingQuestions(settings, `ניסוי: ${edited.name}. תיאור: ${edited.description}. הצעה: ${edited.proposalText || 'אין'}`);
+      const q = await getGuidingQuestions(settings, `${t.reports.experiment}: ${edited.name}. ${t.reports.description}: ${edited.description}. ${t.wizard.proposal}: ${edited.proposalText || t.common.none}`, t, language);
       setQuestions(q);
     } catch (e) {
-      alert("שגיאה בגישה ל-AI");
+      alert(t.experimentDetails.aiAccessError);
     } finally {
       setLoading(false);
     }
@@ -151,14 +151,16 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
         settings,
         edited.description,
         activeQuestion,
-        userAnswer
+        userAnswer,
+        t,
+        language
       );
       setEdited({ ...edited, description: newDesc });
       setUserAnswer('');
       setActiveQuestion(null);
       setQuestions(prev => prev.filter(q => q !== activeQuestion));
     } catch (e) {
-      alert("שגיאה בעדכון התיאור");
+      alert(t.experimentDetails.descUpdateError);
     } finally {
       setRefining(false);
     }
@@ -167,10 +169,10 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
   const handleGenerateReport = async () => {
     setGeneratingReport(true);
     try {
-      const result = await generateExperimentReport(settings, experiment, tasks);
+      const result = await generateExperimentReport(settings, experiment, tasks, t, language);
       setReport(result);
     } catch (e) {
-      alert("שגיאה ביצירת הדו\"ח");
+      alert(t.experimentDetails.reportError);
     } finally {
       setGeneratingReport(false);
     }
@@ -186,9 +188,9 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
 
   const handleShift = () => {
     if (onShiftTimeline) {
-      if (confirm(`האם אתה בטוח שברצונך להזיז את כל המשימות העתידיות ב-${shiftWeeks} שבועות?`)) {
+      if (confirm(t.experimentDetails.confirmShiftMessage.replace('{weeks}', shiftWeeks.toString()))) {
         onShiftTimeline(experiment.id, shiftWeeks);
-        alert("לוח הזמנים עודכן בהצלחה");
+        alert(t.experimentDetails.timelineUpdateSuccess);
       }
     }
   };
@@ -385,8 +387,9 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
                                     setUserAnswer('');
                                   }
                                 }}
+
                                 className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200 whitespace-nowrap"
-                                title="השב לשאלה"
+                                title={t.experimentDetails.replyToQuestion}
                               >
                                 {activeQuestion === q ? <XMarkIcon className="w-4 h-4" /> : <ChatBubbleLeftRightIcon className="w-4 h-4" />}
                               </button>
@@ -398,7 +401,7 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
                                 <textarea
                                   value={userAnswer}
                                   onChange={(e) => setUserAnswer(e.target.value)}
-                                  placeholder="הקלד את תשובתך כאן כדי לשפר את תיאור המחקר..."
+                                  placeholder={t.experimentDetails.answerPlaceholder}
                                   className="w-full text-xs p-2 border border-indigo-200 dark:border-slate-500 rounded-lg outline-none focus:border-indigo-400 dark:bg-slate-800 dark:text-white"
                                   rows={2}
                                 />
@@ -420,7 +423,7 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
                     )}
 
                     {questions.length === 0 && !loading && (
-                      <p className="text-xs text-indigo-600/70 dark:text-indigo-300/70 text-center italic">קבל שאלות מנחות לשיפור תכנון הניסוי שלך</p>
+                      <p className="text-xs text-indigo-600/70 dark:text-indigo-300/70 text-center italic">{t.experimentDetails.questionsHint}</p>
                     )}
                   </div>
                 </div>
@@ -581,7 +584,7 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
                                 <button
                                   onClick={() => setDateInputMode(prev => prev === 'offset' ? 'date' : 'offset')}
                                   className="text-[10px] bg-slate-200 dark:bg-slate-600 px-1.5 py-0.5 rounded flex items-center gap-1 hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors"
-                                  title="החלף שיטת עריכה"
+                                  title={t.experimentDetails.switchEditMode}
                                 >
                                   {dateInputMode === 'offset' ? <ClockIcon className="w-3 h-3" /> : <CalendarDaysIcon className="w-3 h-3" />}
                                   {dateInputMode === 'offset' ? t.board.week : t.taskModal.date}
@@ -603,7 +606,7 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
                                   value={item.title}
                                   onChange={(e) => handleRowChange(index, 'title', e.target.value)}
                                   className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded p-1 text-sm font-bold"
-                                  placeholder="שם המשימה"
+                                  placeholder={t.experimentDetails.taskNamePlaceholder}
                                 />
                               ) : (
                                 <span className="font-bold text-slate-800 dark:text-slate-200 block">{item.title}</span>
@@ -616,7 +619,7 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
                                   value={item.description}
                                   onChange={(e) => handleRowChange(index, 'description', e.target.value)}
                                   className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded p-1 text-xs"
-                                  placeholder="תיאור"
+                                  placeholder={t.experimentDetails.descriptionPlaceholder}
                                 />
                               ) : (
                                 <span className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[200px] block" title={item.description}>{item.description}</span>
@@ -626,7 +629,7 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
                               {isEditingPlan ? (
                                 dateInputMode === 'offset' ? (
                                   <div className="flex items-center gap-1">
-                                    <span className="text-xs text-slate-400">שבוע</span>
+                                    <span className="text-xs text-slate-400">{t.experimentDetails.week}</span>
                                     <input
                                       type="number"
                                       value={item.weekOffset}
@@ -644,7 +647,7 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
                                 )
                               ) : (
                                 <div className="flex flex-col">
-                                  <span className="font-bold">שבוע {item.weekOffset >= 0 ? item.weekOffset : '-'}</span>
+                                  <span className="font-bold">{t.experimentDetails.weekPrefix}{item.weekOffset >= 0 ? item.weekOffset : '-'}</span>
                                   <span className="text-[10px] text-slate-400">{format(parseISO(item.actualDate), 'dd/MM/yyyy')}</span>
                                 </div>
                               )}
@@ -665,7 +668,7 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
                               <button
                                 onClick={() => item.actualTaskId && handleOpenEditTask(item.actualTaskId)}
                                 className="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                                title="עריכה מלאה"
+                                title={t.wizard.fullEdit}
                               >
                                 <PencilSquareIcon className="w-4 h-4" />
                               </button>
@@ -769,7 +772,7 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

@@ -25,11 +25,11 @@ export const DEFAULT_AI_SETTINGS: AiSettings = {
 };
 
 export const STATUS_OPTIONS = [
-  { label: 'רגיל', value: TaskStatus.DEFAULT, color: 'bg-slate-100 text-slate-700' },
-  { label: 'חשוב', value: TaskStatus.IMPORTANT, color: 'bg-red-100 text-red-700' },
-  { label: 'אזהרה', value: TaskStatus.WARNING, color: 'bg-amber-100 text-amber-700' },
-  { label: 'מידע', value: TaskStatus.INFO, color: 'bg-blue-100 text-blue-700' },
-  { label: 'הושלם', value: TaskStatus.COMPLETED, color: 'bg-emerald-100 text-emerald-700' }
+  { label: 'Default', value: TaskStatus.DEFAULT, color: 'bg-slate-100 text-slate-700' },
+  { label: 'Important', value: TaskStatus.IMPORTANT, color: 'bg-red-100 text-red-700' },
+  { label: 'Warning', value: TaskStatus.WARNING, color: 'bg-amber-100 text-amber-700' },
+  { label: 'Info', value: TaskStatus.INFO, color: 'bg-blue-100 text-blue-700' },
+  { label: 'Completed', value: TaskStatus.COMPLETED, color: 'bg-emerald-100 text-emerald-700' }
 ];
 
 export const INITIAL_APP_DATA = {

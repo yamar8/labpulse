@@ -24,6 +24,76 @@ export interface TranslationDictionary {
         notImplemented: string;
         error: string;
     };
+    reports: {
+        weeklyTitle: string;
+        weekOf: string;
+        experiment: string;
+        task: string;
+        status: string;
+        importance: string;
+        execution: string;
+        completed: string;
+        planned: string;
+        high: string;
+        normal: string;
+        printTitle: string;
+        description: string;
+    };
+    aiMock: {
+        planResponse: string;
+        queryResponse: string;
+        reportResponse: string;
+        taskTitle: string;
+        taskDesc: string;
+        phasePrep: string;
+        phaseExec: string;
+    };
+    auth: {
+        accessDenied: string;
+        accessDeniedMessage: string;
+        contactAdmin: string;
+        logout: string;
+        verificationRequired: string;
+        verificationMessage: string;
+        alreadyVerified: string;
+        checkAgain: string;
+        resendEmail: string;
+        logoutAndReturn: string;
+        emailSentAgain: string;
+        tooManyRequests: string;
+        emailError: string;
+    };
+    importExport: {
+        title: string;
+        foundDataMessage: string;
+        howToProceed: string;
+        merge: string;
+        mergeDesc: string;
+        replace: string;
+        replaceDesc: string;
+        cancel: string;
+        importError: string;
+        importSuccess: string;
+        replaceSuccess: string;
+    };
+    csv: {
+        experiment: string;
+        task: string;
+        week: string;
+        status: string;
+        importance: string;
+        completed: string;
+        yes: string;
+        no: string;
+        unknown: string;
+    };
+    taskStatus: {
+        default: string;
+        important: string;
+        warning: string;
+        info: string;
+        completed: string;
+    };
     header: {
         newExperiment: string;
         weeklySummary: string;
@@ -34,12 +104,20 @@ export interface TranslationDictionary {
         exportCsv: string;
         settings: string;
         jumpToToday: string;
+        switchLanguage: string;
+        logout: string;
+        guestUser: string;
+        guestUserLabel: string;
+        localMode: string;
+        lastLogin: string;
+        profile: string;
     };
     board: {
         experimentResearch: string;
         noActiveExperiments: string;
         clickNewToStart: string;
         week: string;
+        scrollHint: string;
     };
     wizard: {
         title: string;
@@ -61,6 +139,37 @@ export interface TranslationDictionary {
         addManualTask: string;
         back: string;
         continue: string;
+        week: string;
+        everyXWeeks: string;
+        forDurationWeeks: string;
+        oneTime: string;
+        fullEdit: string;
+        delete: string;
+        editTaskTitle: string;
+        taskTitle: string;
+        timingStart: string;
+        byWeek: string;
+        byDate: string;
+        weekPlus: string;
+        importance: string;
+        importanceLow: string;
+        importanceNormal: string;
+        importanceCritical: string;
+        recurrenceSettings: string;
+        repeatTask: string;
+        frequency: string;
+        frequencyWeeks: string;
+        durationTotal: string;
+        durationWeeks: string;
+        totalTasksEstimation: string;
+        fullDescription: string;
+        fullDescriptionPlaceholder: string;
+        cancel: string;
+        saveChanges: string;
+        createAiPlan: string;
+        finishAndAdd: string;
+        aiIdentifiedTasks: string; // 'AI identified {count} tasks'
+        recurrenceColumn: string;
     };
     taskModal: {
         title: string; // Edit Task or New Task
@@ -85,8 +194,14 @@ export interface TranslationDictionary {
         noDependenciesAvailable: string;
         completed: string;
         confirmDeleteYes: string;
-
         confirmDeleteNo: string;
+        aiContext: string;
+        aiError: string;
+        descUpdateError: string;
+        circularDependencyError: string;
+        removeDependency: string;
+        replyToQuestion: string;
+        typeAnswerPlaceholder: string;
     };
     aiChat: {
         systemAnswer: string;
@@ -130,6 +245,19 @@ export interface TranslationDictionary {
         confirmResetYes: string;
         confirmDelete: string;
         confirmDeleteYes: string;
+        aiAccessError: string;
+        descUpdateError: string;
+        reportError: string;
+        timelineUpdateSuccess: string;
+        confirmShiftMessage: string;
+        replyToQuestion: string;
+        answerPlaceholder: string;
+        questionsHint: string;
+        switchEditMode: string;
+        taskNamePlaceholder: string;
+        descriptionPlaceholder: string;
+        week: string;
+        weekPrefix: string;
     };
     settings: {
         title: string;
@@ -167,5 +295,60 @@ export interface TranslationDictionary {
         systemPromptPlaceholder: string;
         systemPromptHint: string;
         apiKeyPlaceholder: string;
+    };
+    login: {
+        loginError: string;
+        wrongPassword: string;
+        userNotFound: string;
+        emailInUse: string;
+        weakPassword: string;
+        invalidCredential: string;
+        verificationSentTitle: string;
+        verificationSentMessage: string;
+        backToLogin: string;
+        loginTitle: string;
+        signupTitle: string;
+        fullName: string;
+        fullNamePlaceholder: string;
+        email: string;
+        emailPlaceholder: string;
+        password: string;
+        passwordPlaceholder: string;
+        loginBtn: string;
+        signupBtn: string;
+        or: string;
+        googleLogin: string;
+        googleLoginError: string;
+        noAccount: string;
+        hasAccount: string;
+        guestMode: string;
+    };
+    summary: {
+        weeklyTitle: string;
+        monthlyTitle: string;
+        noTasksInPeriod: string;
+        summaryError: string;
+        filterByExperiment: string;
+        allExperiments: string;
+        printPdf: string;
+        wordExport: string;
+        aiAnalysis: string;
+        refreshAnalysis: string;
+        noDataForPeriod: string;
+        clickToGenerate: string;
+        tasksList: string;
+        range: string;
+        generalExperiment: string;
+        inProgress: string;
+        noTasksRecorded: string;
+        closeView: string;
+    };
+    archive: {
+        emptyArchive: string;
+        emptyArchiveInspiration: string;
+        restore: string;
+        created: string;
+        noDescription: string;
+        title: string;
     };
 }

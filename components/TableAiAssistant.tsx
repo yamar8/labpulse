@@ -28,7 +28,7 @@ const TableAiAssistant: React.FC<TableAiAssistantProps> = ({
   onUndo,
   canUndo
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [pendingAction, setPendingAction] = useState<TableAiAction | null>(null);
@@ -40,7 +40,7 @@ const TableAiAssistant: React.FC<TableAiAssistantProps> = ({
     setLoading(true);
     try {
       // Send all tasks for context so queries are accurate
-      const res = await getTableAction(settings, prompt, experiments, tasks);
+      const res = await getTableAction(settings, prompt, experiments, tasks, t, language);
       if (res.action === 'none') {
         alert(res.textResponse);
         setPrompt('');

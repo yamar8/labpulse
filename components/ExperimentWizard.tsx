@@ -41,7 +41,7 @@ interface EditableTask extends PlanTaskItem {
 }
 
 const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [parsingFile, setParsingFile] = useState(false);
@@ -182,7 +182,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
     if (!proposalText) return;
     setLoading(true);
     try {
-      const draft = await generatePlanFromProposal(settings, proposalText);
+      const draft = await generatePlanFromProposal(settings, proposalText, t, language);
       setPlanDraft(draft);
       processAiDraft(draft);
       setStep(3);
@@ -424,7 +424,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-bold text-slate-800">{t.wizard.step3}</h3>
-                  <p className="text-sm text-slate-500">AI identified {draftTasks.length} tasks.</p>
+                  <p className="text-sm text-slate-500">{t.wizard.aiIdentifiedTasks.replace('{count}', draftTasks.length.toString())}</p>
                 </div>
               </div>
 
@@ -441,7 +441,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                         </th>
                         <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase w-20">{t.taskModal.weekOffset}</th>
                         <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase min-w-[120px]">{t.taskModal.name}</th>
-                        <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase w-48 hidden sm:table-cell">Recurrence</th>
+                        <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase w-48 hidden sm:table-cell">{t.wizard.recurrenceColumn}</th>
                         <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase w-24 hidden sm:table-cell">{t.taskModal.importance}</th>
                         <th className="px-3 py-3 text-right text-xs font-bold text-slate-500 uppercase w-24">{t.common.edit}</th>
                       </tr>
@@ -459,7 +459,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                           </td>
                           <td className="px-3 py-3">
                             <div className="flex items-center gap-1">
-                              <span className="text-xs text-slate-400">שבוע</span>
+                              <span className="text-xs text-slate-400">{t.wizard.week}</span>
                               <span className="font-bold text-sm bg-slate-100 px-2 py-0.5 rounded">{task.weekOffset}</span>
                             </div>
                           </td>
@@ -473,11 +473,11 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                           <td className="px-3 py-3 hidden sm:table-cell">
                             {task.recurrence ? (
                               <div className="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-lg border border-purple-100 inline-flex flex-col">
-                                <span className="font-bold">כל {task.recurrence.intervalWeeks} שבועות</span>
-                                <span className="text-[10px] opacity-80">למשך {task.recurrence.durationWeeks} שבועות</span>
+                                <span className="font-bold">{t.wizard.everyXWeeks.replace('{interval}', task.recurrence.intervalWeeks.toString())}</span>
+                                <span className="text-[10px] opacity-80">{t.wizard.forDurationWeeks.replace('{duration}', task.recurrence.durationWeeks.toString())}</span>
                               </div>
                             ) : (
-                              <span className="text-xs text-slate-400">- חד פעמי -</span>
+                              <span className="text-xs text-slate-400">{t.wizard.oneTime}</span>
                             )}
                           </td>
                           <td className="px-3 py-3 hidden sm:table-cell">
@@ -492,14 +492,14 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                               <button
                                 onClick={() => setEditingTask(task)}
                                 className="text-slate-400 hover:text-indigo-600 p-1 bg-slate-100 rounded-lg transition-colors"
-                                title="עריכה מלאה"
+                                title={t.wizard.fullEdit}
                               >
                                 <PencilSquareIcon className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => setDraftTasks(prev => prev.filter(t => t.id !== task.id))}
                                 className="text-slate-400 hover:text-red-500 p-1"
-                                title="מחק"
+                                title={t.common.delete}
                               >
                                 <TrashIcon className="w-4 h-4" />
                               </button>
@@ -515,7 +515,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                   className="w-full py-3 text-center text-sm font-bold text-indigo-600 hover:bg-indigo-50 border-t border-slate-200 flex items-center justify-center gap-2"
                 >
                   <PlusIcon className="w-4 h-4" />
-                  הוסף משימה ידנית
+                  {t.wizard.addManualTask}
                 </button>
               </div>
             </div>
@@ -527,7 +527,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
               <div className="px-4 md:px-8 py-4 md:py-6 border-b border-slate-100 flex items-center justify-between">
                 <h3 className="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2">
                   <PencilSquareIcon className="w-6 h-6 text-indigo-600" />
-                  עריכת משימה
+                  {t.wizard.editTaskTitle}
                 </h3>
                 <button onClick={() => setEditingTask(null)} className="text-slate-400 hover:text-slate-600">
                   <XMarkIcon className="w-6 h-6" />
@@ -535,7 +535,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
               </div>
               <div className="p-4 md:p-8 space-y-6 flex-1 overflow-y-auto max-w-3xl mx-auto w-full">
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">כותרת המשימה</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">{t.wizard.taskTitle}</label>
                   <input
                     type="text"
                     value={editingTask.title}
@@ -547,21 +547,21 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-bold text-slate-700">תזמון (התחלה)</label>
+                      <label className="block text-sm font-bold text-slate-700">{t.wizard.timingStart}</label>
                       <div className="flex bg-slate-100 rounded-lg p-0.5">
                         <button
                           type="button"
                           onClick={() => setDateInputMode('week_offset')}
                           className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${dateInputMode === 'week_offset' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}
                         >
-                          לפי שבוע
+                          {t.wizard.byWeek}
                         </button>
                         <button
                           type="button"
                           onClick={() => setDateInputMode('specific_date')}
                           className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${dateInputMode === 'specific_date' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}
                         >
-                          לפי תאריך
+                          {t.wizard.byDate}
                         </button>
                       </div>
                     </div>
@@ -574,7 +574,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                           onChange={e => setEditingTask({ ...editingTask, weekOffset: parseInt(e.target.value) })}
                           className="w-full border border-slate-300 rounded-xl px-4 py-2 outline-none pl-12"
                         />
-                        <span className="absolute right-4 top-2 text-sm text-slate-400">שבוע +</span>
+                        <span className="absolute right-4 top-2 text-sm text-slate-400">{t.wizard.weekPlus}</span>
                       </div>
                     ) : (
                       <div className="relative">
@@ -596,13 +596,13 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">רמת חשיבות</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">{t.wizard.importance}</label>
                     <select
                       value={editingTask.importance}
                       onChange={e => setEditingTask({ ...editingTask, importance: parseInt(e.target.value) })}
                       className="w-full border border-slate-300 rounded-xl px-4 py-2 outline-none bg-white"
                     >
-                      {[1, 2, 3, 4, 5].map(v => <option key={v} value={v}>P{v} - {v === 5 ? 'קריטי' : v === 1 ? 'נמוך' : 'רגיל'}</option>)}
+                      {[1, 2, 3, 4, 5].map(v => <option key={v} value={v}>P{v} - {v === 5 ? t.wizard.importanceCritical : v === 1 ? t.wizard.importanceLow : t.wizard.importanceNormal}</option>)}
                     </select>
                   </div>
                 </div>
@@ -610,7 +610,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                 <div className="bg-purple-50 p-6 rounded-xl border border-purple-100 space-y-4">
                   <div className="flex items-center gap-2">
                     <ArrowPathRoundedSquareIcon className="w-6 h-6 text-purple-700" />
-                    <label className="text-lg font-bold text-purple-900">הגדרות חזרתיות</label>
+                    <label className="text-lg font-bold text-purple-900">{t.wizard.recurrenceSettings}</label>
                   </div>
 
                   <div className="flex items-center gap-4">
@@ -624,14 +624,14 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                         })}
                         className="w-5 h-5 rounded border-purple-300 text-purple-600 focus:ring-purple-500"
                       />
-                      <span className="text-sm font-bold text-purple-800">משימה זו חוזרת על עצמה</span>
+                      <span className="text-sm font-bold text-purple-800">{t.wizard.repeatTask}</span>
                     </label>
                   </div>
 
                   {editingTask.recurrence && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 pt-2 border-t border-purple-200">
                       <div>
-                        <label className="block text-xs font-bold text-purple-700 mb-1">תדירות (כל כמה שבועות?)</label>
+                        <label className="block text-xs font-bold text-purple-700 mb-1">{t.wizard.frequency}</label>
                         <div className="relative">
                           <input
                             type="number" min="1" max="52"
@@ -642,11 +642,11 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                             })}
                             className="w-full border-purple-300 rounded-lg px-4 py-2 outline-none focus:border-purple-500 font-bold"
                           />
-                          <span className="absolute left-3 top-2.5 text-xs text-purple-400">שבועות</span>
+                          <span className="absolute left-3 top-2.5 text-xs text-purple-400">{t.wizard.frequencyWeeks}</span>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-purple-700 mb-1">משך כולל (כמה זמן תימשך החזרה?)</label>
+                        <label className="block text-xs font-bold text-purple-700 mb-1">{t.wizard.durationTotal}</label>
                         <div className="relative">
                           <input
                             type="number" min="1" max="100"
@@ -657,10 +657,10 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                             })}
                             className="w-full border-purple-300 rounded-lg px-4 py-2 outline-none focus:border-purple-500 font-bold"
                           />
-                          <span className="absolute left-3 top-2.5 text-xs text-purple-400">שבועות</span>
+                          <span className="absolute left-3 top-2.5 text-xs text-purple-400">{t.wizard.durationWeeks}</span>
                         </div>
                         <p className="text-[10px] text-purple-600 mt-1">
-                          * ייווצרו כ-{Math.ceil(editingTask.recurrence.durationWeeks / editingTask.recurrence.intervalWeeks)} משימות סה"כ.
+                          {t.wizard.totalTasksEstimation.replace('{count}', Math.ceil(editingTask.recurrence.durationWeeks / editingTask.recurrence.intervalWeeks).toString())}
                         </p>
                       </div>
                     </div>
@@ -668,12 +668,12 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">תיאור מלא</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">{t.wizard.fullDescription}</label>
                   <textarea
                     value={editingTask.description}
                     onChange={e => setEditingTask({ ...editingTask, description: e.target.value })}
                     className="w-full border border-slate-300 rounded-xl px-4 py-3 outline-none h-40 resize-none"
-                    placeholder="פרט את מהות המשימה..."
+                    placeholder={t.wizard.fullDescriptionPlaceholder}
                   />
                 </div>
               </div>
@@ -682,14 +682,14 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                   onClick={() => setEditingTask(null)}
                   className="px-6 py-2 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100"
                 >
-                  ביטול
+                  {t.wizard.cancel}
                 </button>
                 <button
                   onClick={saveEditedTask}
                   className="px-6 py-2 rounded-xl bg-indigo-600 font-bold text-white hover:bg-indigo-700 shadow-sm flex items-center gap-2"
                 >
                   <CheckIcon className="w-5 h-5" />
-                  שמור שינויים
+                  {t.wizard.saveChanges}
                 </button>
               </div>
             </div>
@@ -727,7 +727,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                   onClick={() => handleFinish()}
                   className="px-6 py-2 rounded-xl border border-indigo-600 text-indigo-600 font-bold hover:bg-indigo-50 text-sm md:text-base"
                 >
-                  דילוג על AI
+                  {t.wizard.skipAi}
                 </button>
                 <button
                   onClick={handleGeneratePlan}
@@ -735,7 +735,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                   className="px-6 py-2 rounded-xl bg-indigo-600 font-bold text-white hover:bg-indigo-700 flex items-center gap-2 justify-center text-sm md:text-base"
                 >
                   {loading ? <ArrowPathIcon className="w-5 h-5 animate-spin" /> : <DocumentTextIcon className="w-5 h-5" />}
-                  <span>צור תוכנית AI</span>
+                  <span>{t.wizard.createAiPlan}</span>
                 </button>
               </div>
             )}
@@ -745,7 +745,7 @@ const ExperimentWizard: React.FC<WizardProps> = ({ settings, onClose, onSave }) 
                 className="px-6 py-2 rounded-xl bg-indigo-600 font-bold text-white hover:bg-indigo-700 flex items-center gap-2 text-sm md:text-base"
               >
                 <CheckIcon className="w-5 h-5" />
-                <span>סיים והוסף ללוח</span>
+                <span>{t.wizard.finishAndAdd}</span>
               </button>
             )}
           </div>

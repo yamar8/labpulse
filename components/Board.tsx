@@ -100,7 +100,7 @@ const Board: React.FC<BoardProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900 p-2 md:p-6 transition-colors">
+    <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900 p-2 md:p-6 transition-colors pb-32">
       <div className="inline-block min-w-full align-middle border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-slate-800">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700 table-fixed border-collapse">
@@ -132,7 +132,7 @@ const Board: React.FC<BoardProps> = ({
               <tr
                 className="bg-slate-50 dark:bg-slate-800 cursor-ew-resize hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 onWheel={handleHeaderWheel}
-                title={language === 'he' ? "גלול כאן עם העכבר כדי לנוע בזמן" : "Scroll here to move in time"}
+                title={t.board.scrollHint}
               >
                 {/* Note: The first cell is handled by rowSpan above */}
                 {weeks.map(week => {
@@ -214,7 +214,7 @@ const Board: React.FC<BoardProps> = ({
                                 {!task.completed && (
                                   <div className="mt-1 flex items-center gap-1">
                                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${statusConfig.color}`}>
-                                      {statusConfig.label}
+                                      {t.taskStatus[task.status] || statusConfig.label}
                                     </span>
                                     {task.importance > 3 && (
                                       <span className="text-[10px] bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300 px-1 py-0.5 rounded-full font-black">

@@ -1,7 +1,8 @@
 
 import { format, startOfWeek, addWeeks, parseISO, isSameDay, differenceInWeeks } from 'date-fns';
 import { he } from 'date-fns/locale';
-import { AppData, Task, Experiment, TaskStatus } from './types';
+import { AppData, Task, Experiment, TaskStatus, AiSettings } from './types';
+import { AI_SETTINGS_KEY, DEFAULT_AI_SETTINGS } from './constants';
 
 export const normalizeToSunday = (date: Date | string): string => {
   const d = typeof date === 'string' ? parseISO(date) : date;
@@ -106,7 +107,7 @@ export const validateAndMigrateAppData = (imported: any): AppData => {
   const cleanTasks: Task[] = imported.tasks.reduce((acc: Task[], t: any) => {
     // 1. Ensure Task has ID
     const tId = t.id || generateUUID();
-    
+
     // 2. Remove duplicate IDs
     if (processedTaskIds.has(tId)) return acc;
     processedTaskIds.add(tId);
@@ -133,11 +134,14 @@ export const validateAndMigrateAppData = (imported: any): AppData => {
     return acc;
   }, []);
 
+  const migratedSettings: AiSettings = imported.settings || getLocalStorage(AI_SETTINGS_KEY, DEFAULT_AI_SETTINGS);
+
   return {
     experiments: cleanExperiments,
     tasks: cleanTasks,
     schemaVersion: 1, // Current version
-    hiddenWeeks: Array.isArray(imported.hiddenWeeks) ? imported.hiddenWeeks : []
+    hiddenWeeks: Array.isArray(imported.hiddenWeeks) ? imported.hiddenWeeks : [],
+    settings: migratedSettings
   };
 };
 
@@ -151,7 +155,7 @@ export const hasCircularDependency = (allTasks: Task[], taskId: string, newDepen
 
   const adj = new Map<string, string[]>();
   allTasks.forEach(t => adj.set(t.id, [...t.dependencies]));
-  
+
   // Temporarily add the new dependency to the graph for checking
   const currentDeps = adj.get(taskId) || [];
   adj.set(taskId, [...currentDeps, newDependencyId]);
@@ -185,7 +189,7 @@ export const hasCircularDependency = (allTasks: Task[], taskId: string, newDepen
  */
 export const isTaskBlocked = (task: Task, allTasks: Task[]): boolean => {
   if (!task.dependencies || task.dependencies.length === 0) return false;
-  
+
   return task.dependencies.some(depId => {
     const depTask = allTasks.find(t => t.id === depId);
     return depTask && !depTask.completed;
@@ -198,7 +202,7 @@ export const isTaskBlocked = (task: Task, allTasks: Task[]): boolean => {
  */
 export const parseSimpleMarkdown = (text: string): string => {
   if (!text) return '';
-  
+
   let html = text
     // Header level 3
     .replace(/^### (.*$)/gim, '<h3 class="font-bold text-lg mt-4 mb-2">$1</h3>')
@@ -212,6 +216,6 @@ export const parseSimpleMarkdown = (text: string): string => {
     .replace(/^\s*-\s+(.*$)/gim, '<li class="ml-4 list-disc">$1</li>')
     // New lines to line breaks
     .replace(/\n/g, '<br />');
-    
+
   return html;
 };

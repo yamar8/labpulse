@@ -5,7 +5,7 @@ import { Task, Experiment } from '../types';
 import { STATUS_OPTIONS } from '../constants';
 import { normalizeToSunday, isTaskBlocked } from '../utils';
 import { format, addWeeks, parseISO, getISOWeek, endOfWeek } from 'date-fns';
-import { PlusIcon, InformationCircleIcon, ChartBarIcon, LockClosedIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, InformationCircleIcon, ChartBarIcon, LockClosedIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 interface BoardProps {
   experiments: Experiment[];
@@ -35,8 +35,8 @@ const Board: React.FC<BoardProps> = ({
     const today = new Date();
     const start = normalizeToSunday(today);
     const range = [];
-    // Render 12 weeks dynamically based on offset
-    for (let i = -2; i < 10; i++) {
+    // Render 20 weeks dynamically based on offset (increased from 12)
+    for (let i = -2; i < 18; i++) {
       const w = normalizeToSunday(addWeeks(parseISO(start), viewOffset + i));
       if (!hiddenWeeks.includes(w)) {
         range.push(w);
@@ -83,26 +83,33 @@ const Board: React.FC<BoardProps> = ({
     return tasksMap[experimentId]?.[weekId] || [];
   };
 
-  // Wheel handler for the header specifically
-  const handleHeaderWheel = (e: React.WheelEvent) => {
-    // Only scroll weeks if we are hovering the header
-    e.preventDefault();
-    e.stopPropagation();
+  // Wheel handler for the entire board
+  const handleBoardWheel = (e: React.WheelEvent) => {
+    // Check if horizontal scroll is primarily intended (shift key or trackpad horizontal)
+    // If it's a vertical scroll (standard mouse wheel), we treat it as timeline shift
+    // unless the user is scrolling vertically in the page (which is handled by overflow-auto of parent).
+    // However, since this component is overflow-auto x-axis custom, let's bind it carefully.
 
-    // Debounce or threshold check could be added here for smoother feel
-    // In RTL, the direction might need to be inverted depending on browser implementation,
-    // but usually deltaY is consistent. Horizontal scrolling (shift+wheel) might need check.
-    if (e.deltaY > 0) {
-      onViewOffsetChange(viewOffset + 1);
-    } else if (e.deltaY < 0) {
-      onViewOffsetChange(viewOffset - 1);
+    // A simple approach: If Shift is pressed, mapping is native.
+    // If not, and deltaY is present, we map it to horizontal timeline shift.
+
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      // If horizontal scrolling is dominant, shift the timeline
+      e.preventDefault(); // Prevent browser back/forward history navigation if applicable
+
+      if (e.deltaX > 0) {
+        onViewOffsetChange(viewOffset + 1);
+      } else if (e.deltaX < 0) {
+        onViewOffsetChange(viewOffset - 1);
+      }
     }
+    // Vertical scrolling (deltaY) will now be handled natively by the browser/container (scroll up/down)
   };
 
   return (
     <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900 p-2 md:p-6 transition-colors pb-32">
       <div className="inline-block min-w-full align-middle border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-slate-800">
-        <div className="overflow-x-auto custom-scrollbar">
+        <div className="overflow-x-auto custom-scrollbar" onWheel={handleBoardWheel}>
           <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700 table-fixed border-collapse">
             <thead>
               {/* Year Stripe Row */}
@@ -111,8 +118,24 @@ const Board: React.FC<BoardProps> = ({
                   className={`sticky ${language === 'he' ? 'right-0' : 'left-0'} z-30 bg-slate-50 dark:bg-slate-800 w-40 md:w-64 ${language === 'he' ? 'border-l' : 'border-r'} border-slate-200 dark:border-slate-700 p-0 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]`}
                   rowSpan={2}
                 >
-                  <div className={`h-full flex items-center ${language === 'he' ? 'justify-end pr-4 pl-2' : 'justify-start pl-4 pr-2'} text-sm font-bold text-slate-700 dark:text-slate-300`}>
-                    {t.board.experimentResearch}
+                  <div className={`h-full flex items-center justify-between px-4 text-sm font-bold text-slate-700 dark:text-slate-300`}>
+                    <span>{t.board.experimentResearch}</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => onViewOffsetChange(viewOffset - 1)}
+                        className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500"
+                        title={t.common.previous || "Previous"}
+                      >
+                        <ChevronRightIcon className={`w-4 h-4 ${language === 'he' ? '' : 'rotate-180'}`} />
+                      </button>
+                      <button
+                        onClick={() => onViewOffsetChange(viewOffset + 1)}
+                        className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500"
+                        title={t.common.next || "Next"}
+                      >
+                        <ChevronLeftIcon className={`w-4 h-4 ${language === 'he' ? '' : 'rotate-180'}`} />
+                      </button>
+                    </div>
                   </div>
                 </th>
                 {yearSegments.map((segment, index) => (
@@ -131,7 +154,6 @@ const Board: React.FC<BoardProps> = ({
               {/* Weeks Header Row */}
               <tr
                 className="bg-slate-50 dark:bg-slate-800 cursor-ew-resize hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                onWheel={handleHeaderWheel}
                 title={t.board.scrollHint}
               >
                 {/* Note: The first cell is handled by rowSpan above */}

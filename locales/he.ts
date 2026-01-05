@@ -12,6 +12,8 @@ export const he: TranslationDictionary = {
         yes: 'כן',
         no: 'לא',
         new: 'חדש',
+        next: 'הבא',
+        previous: 'הקודם',
         today: 'היום',
         week: 'שבוע',
         month: 'חודש',

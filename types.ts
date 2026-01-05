@@ -70,6 +70,7 @@ export interface AppData {
   tasks: Task[];
   schemaVersion: number;
   hiddenWeeks: string[];
+  settings?: AiSettings;
 }
 
 export interface AiSettings {
@@ -121,8 +122,8 @@ export interface ResearchPlanDraft {
     // Simplified structure from AI, mapped to RecurrenceConfig later
     recurrence?: {
       frequency: 'weekly';
-      count: number; 
+      count: number;
     };
-    dependsOnTaskIndex?: number[]; 
+    dependsOnTaskIndex?: number[];
   }[];
 }

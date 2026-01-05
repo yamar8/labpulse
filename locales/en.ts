@@ -12,6 +12,8 @@ export const en: TranslationDictionary = {
         yes: 'Yes',
         no: 'No',
         new: 'New',
+        next: 'Next',
+        previous: 'Previous',
         today: 'Today',
         week: 'Week',
         month: 'Month',

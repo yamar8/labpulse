@@ -54,7 +54,12 @@ const App: React.FC = () => {
   useEffect(() => {
     dataRef.current = data;
   }, [data]);
-  const [aiSettings, setAiSettings] = useState<AiSettings>(getLocalStorage(AI_SETTINGS_KEY, DEFAULT_AI_SETTINGS));
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
+
+  const currentSettings = data.settings || DEFAULT_AI_SETTINGS;
+
   const [wizardOpen, setWizardOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
@@ -188,30 +193,23 @@ const App: React.FC = () => {
   }, [data, user, isCloudSynced]);
 
   useEffect(() => {
-    // Privacy: Only save API Key to Local Storage if rememberApiKey is true
-    const settingsToSave = { ...aiSettings };
-    if (!settingsToSave.rememberApiKey) {
-      settingsToSave.apiKey = ''; // Don't persist key
-    }
-    setLocalStorage(AI_SETTINGS_KEY, settingsToSave);
-
     // Apply Theme
-    if (aiSettings.theme === 'dark') {
+    if (currentSettings.theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
 
     // Apply Font Size
-    if (aiSettings.fontSize === 'large') {
+    if (currentSettings.fontSize === 'large') {
       document.documentElement.style.fontSize = '18px';
-    } else if (aiSettings.fontSize === 'xl') {
+    } else if (currentSettings.fontSize === 'xl') {
       document.documentElement.style.fontSize = '20px';
     } else {
       document.documentElement.style.fontSize = '16px';
     }
 
-  }, [aiSettings]);
+  }, [currentSettings]);
 
   // --- Actions ---
   const handleSaveExperiment = (experiment: Experiment, tasks: Task[]) => {
@@ -324,15 +322,26 @@ const App: React.FC = () => {
       attachments: [],
       dependencies: []
     };
-    setData(prev => ({
-      ...prev,
-      tasks: [...prev.tasks, newTask]
-    }));
+    // Don't save to DB yet. Just set as selected (Draft mode).
+    // setData(prev => ({
+    //   ...prev,
+    //   tasks: [...prev.tasks, newTask]
+    // }));
     setSelectedTask(newTask);
   };
 
   const handleUpdateTask = (updatedTask: Task) => {
-    const newTasks = data.tasks.map(t => t.id === updatedTask.id ? updatedTask : t);
+    // Check if it's a new task (Draft) or existing
+    const existingIndex = data.tasks.findIndex(t => t.id === updatedTask.id);
+    let newTasks;
+
+    if (existingIndex === -1) {
+      // It's a new task being saved for the first time
+      newTasks = [...data.tasks, updatedTask];
+    } else {
+      // Update existing
+      newTasks = data.tasks.map(t => t.id === updatedTask.id ? updatedTask : t);
+    }
 
     // Sync Logic (Tasks -> Master Plan)
     let newExperiments = [...data.experiments];
@@ -394,6 +403,13 @@ const App: React.FC = () => {
     });
 
     setSelectedTask(null);
+  };
+
+  const handleSaveSettings = (newSettings: AiSettings) => {
+    setData(prev => ({
+      ...prev,
+      settings: newSettings
+    }));
   };
 
   // --- Import Logic ---
@@ -651,7 +667,7 @@ const App: React.FC = () => {
         />
 
         <TableAiAssistant
-          settings={aiSettings}
+          settings={currentSettings}
           experiments={data.experiments}
           tasks={data.tasks}
           onActionConfirmed={handleAiActionConfirmed}
@@ -720,7 +736,7 @@ const App: React.FC = () => {
       {/* Modals */}
       {wizardOpen && (
         <ExperimentWizard
-          settings={aiSettings}
+          settings={currentSettings}
           onClose={() => setWizardOpen(false)}
           onSave={handleSaveExperiment}
         />
@@ -732,7 +748,7 @@ const App: React.FC = () => {
             task={selectedTask}
             allTasks={data.tasks}
             experimentName={data.experiments.find(e => e.id === selectedTask.experimentId)?.name}
-            settings={aiSettings}
+            settings={currentSettings}
             onClose={() => setSelectedTask(null)}
             onSave={handleUpdateTask}
             onDelete={handleDeleteTask}
@@ -743,7 +759,7 @@ const App: React.FC = () => {
       {selectedExperiment && (
         <ExperimentDetailsModal
           experiment={selectedExperiment}
-          settings={aiSettings}
+          settings={currentSettings}
           onClose={() => setSelectedExperiment(null)}
           onSave={handleUpdateExperiment}
           onArchive={handleArchiveExperiment}
@@ -768,15 +784,15 @@ const App: React.FC = () => {
           type={summaryType}
           allTasks={data.tasks}
           experiments={data.experiments}
-          settings={aiSettings}
+          settings={currentSettings}
           onClose={() => setSummaryType(null)}
         />
       )}
 
       {settingsOpen && (
         <Settings
-          settings={aiSettings}
-          onSave={setAiSettings}
+          settings={currentSettings}
+          onSave={handleSaveSettings}
           onClose={() => setSettingsOpen(false)}
         />
       )}

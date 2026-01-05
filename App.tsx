@@ -412,6 +412,13 @@ const App: React.FC = () => {
     }));
   };
 
+  const handleSaveSummary = (summary: { id: string; date: string; periodStart: string; periodEnd: string; type: 'weekly' | 'monthly'; content: string; experimentId?: string }) => {
+    setData(prev => ({
+      ...prev,
+      savedSummaries: [...(prev.savedSummaries || []), summary]
+    }));
+  };
+
   // --- Import Logic ---
   const handleImportJson = () => {
     const input = document.createElement('input');
@@ -786,6 +793,8 @@ const App: React.FC = () => {
           experiments={data.experiments}
           settings={currentSettings}
           onClose={() => setSummaryType(null)}
+          savedSummaries={data.savedSummaries}
+          onSaveSummary={handleSaveSummary}
         />
       )}
 

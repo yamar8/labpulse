@@ -63,6 +63,7 @@ export interface Experiment {
     backgroundColor?: string;
     textColor?: string;
   };
+  aiInsights?: string[]; // Persist AI generated questions/insights
 }
 
 export interface AppData {
@@ -71,6 +72,17 @@ export interface AppData {
   schemaVersion: number;
   hiddenWeeks: string[];
   settings?: AiSettings;
+  savedSummaries?: SavedSummary[]; // Persisted Weekly/Monthly summaries
+}
+
+export interface SavedSummary {
+  id: string;
+  date: string; // ISO string of when it was generated
+  periodStart: string;
+  periodEnd: string;
+  type: 'weekly' | 'monthly';
+  content: string;
+  experimentId?: string; // If filtered by experiment
 }
 
 export interface AiSettings {

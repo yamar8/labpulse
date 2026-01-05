@@ -36,14 +36,18 @@ interface SummaryModalProps {
   experiments: Experiment[];
   settings: AiSettings;
   onClose: () => void;
+  savedSummaries?: { id: string; date: string; periodStart: string; periodEnd: string; type: 'weekly' | 'monthly'; content: string; experimentId?: string }[];
+  onSaveSummary?: (summary: { id: string; date: string; periodStart: string; periodEnd: string; type: 'weekly' | 'monthly'; content: string; experimentId?: string }) => void;
 }
 
 /* ... inside component ... */
-const SummaryModals: React.FC<SummaryModalProps> = ({ type, allTasks, experiments, settings, onClose }) => {
+const SummaryModals: React.FC<SummaryModalProps> = ({ type, allTasks, experiments, settings, onClose, savedSummaries = [], onSaveSummary }) => {
   const { t, language } = useLanguage();
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [summary, setSummary] = useState('');
+  // Use a flag to track if we successfully loaded a saved summary to avoid auto-regenerating
+  const [hasLoadedSaved, setHasLoadedSaved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -80,8 +84,22 @@ const SummaryModals: React.FC<SummaryModalProps> = ({ type, allTasks, experiment
   }, [allTasks, dateRange, selectedExperimentId]);
 
   useEffect(() => {
-    handleGenerate();
-  }, [dateRange, type, selectedExperimentId]); // Re-generate when filters change
+    // Check for saved summary first
+    const saved = savedSummaries?.find(s =>
+      s.type === type &&
+      s.periodStart === dateRange.start.toISOString() &&
+      s.periodEnd === dateRange.end.toISOString() &&
+      (selectedExperimentId === 'all' ? !s.experimentId || s.experimentId === 'all' : s.experimentId === selectedExperimentId)
+    );
+
+    if (saved) {
+      setSummary(saved.content);
+      setHasLoadedSaved(true);
+    } else {
+      setHasLoadedSaved(false);
+      handleGenerate();
+    }
+  }, [dateRange, type, selectedExperimentId, savedSummaries]); // Re-generate/load when filters change
 
   const navigate = (direction: number) => {
     if (type === 'monthly') {
@@ -98,7 +116,10 @@ const SummaryModals: React.FC<SummaryModalProps> = ({ type, allTasks, experiment
   };
   /* ... */
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (force: boolean = false) => {
+    // If we already loaded a saved summary and aren't forcing a refresh, skip generation
+    if (hasLoadedSaved && !force) return;
+
     if (filteredTasks.length === 0) {
       setSummary(t.summary.noTasksInPeriod);
       return;
@@ -113,6 +134,19 @@ const SummaryModals: React.FC<SummaryModalProps> = ({ type, allTasks, experiment
     try {
       const res = await generateSummary(settings, type, dataString, t, language);
       setSummary(res);
+
+      // Save the generated summary
+      if (onSaveSummary) {
+        onSaveSummary({
+          id: crypto.randomUUID(),
+          date: new Date().toISOString(),
+          periodStart: dateRange.start.toISOString(),
+          periodEnd: dateRange.end.toISOString(),
+          type,
+          content: res,
+          experimentId: selectedExperimentId
+        });
+      }
     } catch (e) {
       alert(t.summary.summaryError);
     } finally {

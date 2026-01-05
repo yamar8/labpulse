@@ -111,7 +111,7 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
     setPlanRows(rows);
   }, [tasks, experiment.id, experiment.startDate, isEditingPlan, taskModalOpen]);
 
-  const [questions, setQuestions] = useState<string[]>([]);
+  const [questions, setQuestions] = useState<string[]>(experiment.aiInsights || []);
   const [loading, setLoading] = useState(false);
   const [shiftWeeks, setShiftWeeks] = useState(1);
 
@@ -136,6 +136,10 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
     try {
       const q = await getGuidingQuestions(settings, `${t.reports.experiment}: ${edited.name}. ${t.reports.description}: ${edited.description}. ${t.wizard.proposal}: ${edited.proposalText || t.common.none}`, t, language);
       setQuestions(q);
+      // Save insights immediately and update local edited state to prevent overwrite
+      const updatedEntry = { ...edited, aiInsights: q };
+      setEdited(updatedEntry);
+      onSave(updatedEntry, undefined);
     } catch (e) {
       alert(t.experimentDetails.aiAccessError);
     } finally {
@@ -155,10 +159,19 @@ const ExperimentDetailsModal: React.FC<ExperimentDetailsModalProps> = ({
         t,
         language
       );
-      setEdited({ ...edited, description: newDesc });
+      const newExperimentData = { ...edited, description: newDesc };
+      setEdited(newExperimentData);
       setUserAnswer('');
       setActiveQuestion(null);
-      setQuestions(prev => prev.filter(q => q !== activeQuestion));
+
+      // Update local questions state and save changes
+      // Update local questions state and save changes
+      const updatedQuestions = questions.filter(q => q !== activeQuestion);
+      setQuestions(updatedQuestions);
+
+      const valToSave = { ...newExperimentData, aiInsights: updatedQuestions };
+      setEdited(valToSave); // Update edited to include the new insights
+      onSave(valToSave, undefined);
     } catch (e) {
       alert(t.experimentDetails.descUpdateError);
     } finally {

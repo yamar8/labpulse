@@ -98,7 +98,8 @@ export const validateAndMigrateAppData = (imported: any): AppData => {
     attachments: Array.isArray(e.attachments) ? e.attachments : [],
     proposalText: e.proposalText || "",
     originalPlan: Array.isArray(e.originalPlan) ? e.originalPlan : undefined,
-    style: e.style
+    style: e.style,
+    aiInsights: Array.isArray(e.aiInsights) ? e.aiInsights : []
   }));
 
   const validExpIds = new Set(cleanExperiments.map(e => e.id));
@@ -141,7 +142,8 @@ export const validateAndMigrateAppData = (imported: any): AppData => {
     tasks: cleanTasks,
     schemaVersion: 1, // Current version
     hiddenWeeks: Array.isArray(imported.hiddenWeeks) ? imported.hiddenWeeks : [],
-    settings: migratedSettings
+    settings: migratedSettings,
+    savedSummaries: Array.isArray(imported.savedSummaries) ? imported.savedSummaries : []
   };
 };
 

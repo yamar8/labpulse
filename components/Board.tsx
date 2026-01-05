@@ -180,20 +180,22 @@ const Board: React.FC<BoardProps> = ({
               {experiments.filter(e => e.status === 'active').map(experiment => (
                 <tr key={experiment.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50 transition-colors group">
                   <td className={`sticky ${language === 'he' ? 'right-0 border-l' : 'left-0 border-r'} z-20 bg-white dark:bg-slate-800 group-hover:bg-slate-50 dark:group-hover:bg-slate-700/90 px-2 md:px-4 py-4 text-sm border-slate-200 dark:border-slate-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]`}>
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-900 dark:text-slate-100 truncate max-w-[120px] md:max-w-none" title={experiment.name}>
-                        {experiment.name}
-                      </span>
-                      <button
-                        onClick={() => onOpenExperiment(experiment.id)}
-                        className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-md transition-colors"
-                      >
-                        <InformationCircleIcon className="w-5 h-5" />
-                      </button>
+                    <div className="w-full max-w-[9rem] md:max-w-[14rem] overflow-hidden">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-slate-900 dark:text-slate-100 truncate flex-1 min-w-0" title={experiment.name}>
+                          {experiment.name}
+                        </span>
+                        <button
+                          onClick={() => onOpenExperiment(experiment.id)}
+                          className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-md transition-colors flex-shrink-0 ml-1"
+                        >
+                          <InformationCircleIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                      {experiment.description && (
+                        <p className="hidden md:block text-xs text-slate-500 dark:text-slate-400 mt-1 truncate w-full">{experiment.description}</p>
+                      )}
                     </div>
-                    {experiment.description && (
-                      <p className="hidden md:block text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">{experiment.description}</p>
-                    )}
                   </td>
                   {weeks.map(week => {
                     const cellTasks = getTasksForCell(experiment.id, week);
